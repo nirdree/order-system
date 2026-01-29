@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import {
-  Grid3x3, Plus, Edit, Trash2, Search, Filter, X, Eye,
+  UtensilsCrossed, Plus, Edit, Trash2, Search, Filter, X, Eye,
   Save, Calendar, MapPin, Users, CheckCircle, AlertCircle,
   Loader, ChevronDown, QrCode, Download
 } from 'lucide-react';
@@ -484,7 +484,7 @@ const TableManagement = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-4 rounded-2xl">
-                <Grid3x3 className="w-8 h-8 text-white" />
+                <UtensilsCrossed className="w-8 h-8 text-white" />
               </div>
               <div>
                 <h1 className="text-3xl font-black text-gray-900">Table Management</h1>
@@ -585,7 +585,7 @@ const TableManagement = () => {
             <div className="col-span-full">
               <div className="bg-white/80 backdrop-blur-lg rounded-3xl p-12 text-center shadow-lg border-2 border-amber-100">
                 <div className="bg-gray-100 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-                  <Grid3x3 className="w-12 h-12 text-gray-400" />
+                  <UtensilsCrossed className="w-12 h-12 text-gray-400" />
                 </div>
                 <p className="text-gray-600 font-semibold text-lg">No tables found</p>
                 <p className="text-gray-500 text-sm">Try adjusting your filters or add a new table</p>
@@ -601,7 +601,7 @@ const TableManagement = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-3 rounded-xl">
-                      <Grid3x3 className="w-6 h-6 text-white" />
+                      <UtensilsCrossed className="w-6 h-6 text-white" />
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-gray-900">Table {table.tableNumber}</h3>

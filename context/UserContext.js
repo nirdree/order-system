@@ -25,13 +25,32 @@ export function UserProvider({ children }) {
       const data = await authAPI.getCurrentUser();            
       if (data?.success === true && data?.data) {
         setUser(data.data);
-      } else if (data?.error) {
+      } else if (data?.error || data?.status === 401) {
+        // If authentication fails, logout and clear token
         setUser(null);
+        try {
+          await authAPI.logout();
+        } catch (e) {
+          // ignore logout error
+        }
+        // Redirect to login if not already on public pages
+        if (!publicPages.includes(pathname)) {
+          router.push('/login');
+        }
       } else {
         setUser(null);
       }
     } catch (err) {
+      console.error('Error fetching user:', err);
       setUser(null);
+      try {
+        await authAPI.logout();
+      } catch (e) {
+        // ignore logout error
+      }
+      if (!publicPages.includes(pathname)) {
+        router.push('/login');
+      }
     } finally {
       setLoading(false);
     }

@@ -12,94 +12,149 @@ const PokketCafeLanding = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const menuData = {
-    caughtByCawa: [
-      { name: 'Cawa', price: 50 },
-      { name: 'Cawa Crush', price: 60 },
-      { name: 'Cawa with Ice cream', price: 70 },
-      { name: 'Friendship Cawa/ Milky Cawa', price: 80 },
-      { name: 'True Love Cawa', price: 80 },
-      { name: 'Irish/Vanilla/Caramel Cawa', price: 90 },
-      { name: 'Black Forest Cawa', price: 110 },
-      { name: 'Mocha Cawa with Ice-Cream', price: 110 },
-      { name: 'Cawa Frappe', price: 140, special: true }
-    ],
-    sweetSensation: [
-      { name: 'Lawa Cake', price: 70 },
-      { name: 'Brownie', price: 150 },
-      { name: 'Sizzling Brownie', price: 170 },
-      { name: 'Irish Brownie', price: 180, special: true },
-      { name: 'Dry Fruit Brownie', price: 200, special: true }
-    ],
-    hotTrails: [
-      { name: 'Hot Coffee', price: 50 },
-      { name: 'Irish Hot Coffee', price: 60 },
-      { name: 'Vanilla/Caramel', price: 70, special: true },
-      { name: 'Hot Chocolate', price: 80 },
-      { name: 'Cappuccino', price: 110, special: true }
-    ],
-    deewaniMastani: [
-      { name: 'Strawberry', price: 110 },
-      { name: 'Rose', price: 120 },
-      { name: 'Mango', price: 120 },
-      { name: 'Chocolate', price: 130 },
-      { name: 'Butterscotch', price: 130 },
-      { name: 'Kesar Pista', price: 150 },
-      { name: 'Special Dry Fruits', price: 170, special: true }
-    ],
-    creamyIceCream: [
-      { name: 'Vanilla', price: 60 },
-      { name: 'Strawberry', price: 70 },
-      { name: 'Mango', price: 70 },
-      { name: 'Chocolate', price: 80 },
-      { name: 'Butterscotch', price: 90 },
-      { name: 'Kesar Pista', price: 100 }
-    ],
-    onTheRockIceTea: [
-      { name: 'Lemon Ice Tea', price: 60 },
-      { name: 'Green Apple', price: 70 },
-      { name: 'Raspberry', price: 70 },
-      { name: 'Lemon Mint', price: 80, special: true },
-      { name: 'Watermelon', price: 90 },
-      { name: 'Blue Ocean', price: 90 }
-    ],
-    mysticMocktails: [
-      { name: 'Mint Mojito', price: 130 },
-      { name: 'Green Apple', price: 130, special: true },
-      { name: 'Watermelon', price: 130 },
-      { name: 'Blue Ocean', price: 140, special: true },
-      { name: 'Raspberry', price: 140 },
-      { name: 'Kala Khatta', price: 140 },
-      { name: 'Imli Banta', price: 150, special: true },
-      { name: 'Chili Guava', price: 150, special: true }
-    ],
-    shakeItUp: [
-      { name: 'Vanilla Shake', price: 70 },
-      { name: 'Strawberry Shake', price: 70 },
-      { name: 'Pista Shake', price: 70 },
-      { name: 'Mango Shake', price: 80 },
-      { name: 'Chocolate Shake', price: 90 },
-      { name: 'Butterscotch Shake', price: 100 },
-      { name: 'Oreo Shake', price: 110 },
-      { name: 'Kit-Kat Shake', price: 130, special: true }
-    ],
-    magicTea: [
-      { name: 'Black Tea', price: 30 },
-      { name: 'Lemon Black Tea', price: 40 },
-      { name: 'Lemon Adrak Tea', price: 50 },
-      { name: 'Green Tea', price: 50 }
-    ],
-    sinfulChocolate: [
-      { name: 'CAD-B', price: 120 },
-      { name: 'CAD-M', price: 130 },
-      { name: 'Kit Kat Chocolaty', price: 150 },
-      { name: 'Day n Night', price: 170 },
-      { name: 'Oreo Chocolaty', price: 180 },
-      { name: 'Oreo Punch', price: 190, special: true },
-      { name: 'Dry Fruit Chocolaty', price: 200, special: true }
-    ]
-  };
+ const menuData = {
+  caughtByCawa: [
+    {
+      name: 'Cawa',
+      price: 50,
+      available: true,
+      mostSell: true,
+      imgURL: '/images/cawa/cawa.jpg'
+    },
+    {
+      name: 'Cawa Crush',
+      price: 60,
+      available: true,
+      mostSell: false,
+      imgURL: '/images/cawa/cawa-crush.jpg'
+    },
+    {
+      name: 'Cawa with Ice cream',
+      price: 70,
+      available: true,
+      mostSell: false,
+      imgURL: '/images/cawa/cawa-icecream.jpg'
+    },
+    {
+      name: 'Friendship Cawa/ Milky Cawa',
+      price: 80,
+      available: false,
+      mostSell: false,
+      imgURL: '/images/cawa/milky-cawa.jpg'
+    },
+    {
+      name: 'True Love Cawa',
+      price: 80,
+      available: true,
+      mostSell: true,
+      imgURL: '/images/cawa/true-love.jpg'
+    },
+    {
+      name: 'Irish/Vanilla/Caramel Cawa',
+      price: 90,
+      available: true,
+      mostSell: false,
+      imgURL: '/images/cawa/flavored.jpg'
+    },
+    {
+      name: 'Black Forest Cawa',
+      price: 110,
+      available: true,
+      mostSell: true,
+      imgURL: '/images/cawa/black-forest.jpg'
+    },
+    {
+      name: 'Mocha Cawa with Ice-Cream',
+      price: 110,
+      available: true,
+      mostSell: false,
+      imgURL: '/images/cawa/mocha.jpg'
+    },
+    {
+      name: 'Cawa Frappe',
+      price: 140,
+      available: true,
+      mostSell: true,
+      imgURL: '/images/cawa/frappe.jpg'
+    }
+  ],
 
+  sweetSensation: [
+    {
+      name: 'Lawa Cake',
+      price: 70,
+      available: true,
+      mostSell: false,
+      imgURL: '/images/dessert/lava-cake.jpg'
+    },
+    {
+      name: 'Brownie',
+      price: 150,
+      available: true,
+      mostSell: true,
+      imgURL: '/images/dessert/brownie.jpg'
+    },
+    {
+      name: 'Sizzling Brownie',
+      price: 170,
+      available: true,
+      mostSell: true,
+      imgURL: '/images/dessert/sizzling-brownie.jpg'
+    },
+    {
+      name: 'Irish Brownie',
+      price: 180,
+      available: false,
+      mostSell: false,
+      imgURL: '/images/dessert/irish-brownie.jpg'
+    },
+    {
+      name: 'Dry Fruit Brownie',
+      price: 200,
+      available: true,
+      mostSell: false,
+      imgURL: '/images/dessert/dryfruit-brownie.jpg'
+    }
+  ],
+
+  hotTrails: [
+    {
+      name: 'Hot Coffee',
+      price: 50,
+      available: true,
+      mostSell: true,
+      imgURL: '/images/hot/hot-coffee.jpg'
+    },
+    {
+      name: 'Irish Hot Coffee',
+      price: 60,
+      available: true,
+      mostSell: false,
+      imgURL: '/images/hot/irish-coffee.jpg'
+    },
+    {
+      name: 'Vanilla/Caramel',
+      price: 70,
+      available: true,
+      mostSell: false,
+      imgURL: '/images/hot/vanilla-caramel.jpg'
+    },
+    {
+      name: 'Hot Chocolate',
+      price: 80,
+      available: true,
+      mostSell: true,
+      imgURL: '/images/hot/hot-chocolate.jpg'
+    },
+    {
+      name: 'Cappuccino',
+      price: 110,
+      available: true,
+      mostSell: true,
+      imgURL: '/images/hot/cappuccino.jpg'
+    }
+  ]
+};
   const categories = [
     { id: 'all', name: 'All Items', icon: Sparkles },
     { id: 'caughtByCawa', name: 'Cawa Special', icon: Coffee },
@@ -143,9 +198,9 @@ const PokketCafeLanding = () => {
             >
               <div className="flex items-center gap-2">
                 <span className="text-gray-800 font-medium">{item.name}</span>
-                {item.special && (
+                {item.mostSell && (
                   <span className="bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
-                    Special
+                    Most Sell
                   </span>
                 )}
               </div>

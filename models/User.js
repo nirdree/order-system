@@ -44,7 +44,6 @@ const userSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true,
-  _id: false
 });
 
 // Hash password before saving (CREATE)
@@ -55,11 +54,11 @@ userSchema.pre('save', async function() {
 });
 
 // Hash password before updating (UPDATE)
-userSchema.pre('findOneAndUpdate', async function(next) {
+userSchema.pre('findOneAndUpdate', async function() {
   const update = this.getUpdate();
   
   // Check if password is being updated
-  if (update.password) {
+  if (update && update.password) {
     update.password = await bcrypt.hash(update.password, 10);
   }
 });
@@ -69,4 +68,6 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-export default mongoose.models.User || mongoose.model('User', userSchema);
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+
+export default User;

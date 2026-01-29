@@ -1,45 +1,59 @@
 import mongoose from 'mongoose';
 
 const menuItemSchema = new mongoose.Schema({
-  _id: {
-    type: String,
-    default: () => `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-  },
-  categoryId: {
-    type: String,
-    ref: 'Category',
-    required: true
-  },
   name: {
     type: String,
     required: [true, 'Item name is required'],
+    trim: true
+  },
+  price: {
+    type: Number,
+    required: [true, 'Price is required'],
+    min: [0, 'Price must be positive']
+  },
+  category: {
+    type: String,
+    required: [true, 'Category is required'],
     trim: true
   },
   description: {
     type: String,
     trim: true
   },
-  price: {
-    type: Number,
-    required: [true, 'Price is required'],
-    min: 0
-  },
-  image: {
+  imgURL: {
     type: String,
-    default: '/images/default-food.jpg'
+    trim: true,
+    default: '/images/default-item.jpg'
   },
-  availability: {
-    type: String,
-    enum: ['available', 'out_of_stock', 'seasonal'],
-    default: 'available'
+  available: {
+    type: Boolean,
+    default: true
+  },
+  mostSell: {
+    type: Boolean,
+    default: false
   },
   isActive: {
     type: Boolean,
     default: true
+  },
+  tags: {
+    type: [String],
+    default: []
+  },
+  preparationTime: {
+    type: Number, // in minutes
+    default: 15
   }
 }, {
-  timestamps: true,
-  _id: false
+  timestamps: true
 });
+
+// Index for faster queries
+menuItemSchema.index({ category: 1 });
+menuItemSchema.index({ available: 1 });
+menuItemSchema.index({ mostSell: 1 });
+menuItemSchema.index({ isActive: 1 });
+menuItemSchema.index({ name: 'text' }); // Text search index
 
 export default mongoose.models.MenuItem || mongoose.model('MenuItem', menuItemSchema);
