@@ -2,10 +2,6 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
-  _id: {
-    type: String,
-    default: () => `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-  },
   name: {
     type: String,
     required: [true, 'Name is required'],

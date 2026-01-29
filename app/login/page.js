@@ -123,7 +123,7 @@ const LoginPage = () => {
 
       // Check for API errors
       if (data.error) {
-        throw new Error(data.error || 'Login failed. Please try again.');
+        throw new Error(data.error.message || 'Login failed. Please try again.');
       }
 
       if (!data.success ) {

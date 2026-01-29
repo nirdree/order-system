@@ -22,7 +22,7 @@ import {
   Receipt,
   LayoutDashboard,
   Menu,
-  X,
+  X,UtensilsCrossed
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -36,6 +36,7 @@ export default function OwnerLayout({ children }) {
     { name: 'Orders', href: '/owner/orders', icon: ShoppingCart },
     { name: 'Menu', href: '/owner/menu', icon: MenuSquare },
     { name: 'Bills', href: '/owner/bills', icon: Receipt },
+    { name: 'Tables', href: '/owner/tables', icon: UtensilsCrossed },
     { name: 'User Management', href: '/owner/users', icon: Users },
   ];
 
