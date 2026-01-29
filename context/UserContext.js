@@ -15,7 +15,6 @@ export function UserProvider({ children }) {
   const fetchUser = async () => {
     if (typeof window === 'undefined') return;
     
-    // Don't fetch user on public pages
     const publicPages = ['/', '/login', '/signup'];
     if (publicPages.includes(pathname)) {
       setLoading(false);
@@ -23,24 +22,15 @@ export function UserProvider({ children }) {
     }
 
     try {
-      const data = await authAPI.getCurrentUser();
-      
-      console.log('Fetch user response:', data);
-      
-      // Check if we got valid user data (success response)
+      const data = await authAPI.getCurrentUser();            
       if (data?.success === true && data?.data) {
-        console.log('Setting user:', data.data);
         setUser(data.data);
       } else if (data?.error) {
-        // If there's an error, clear user (401, network error, etc.)
-        console.log('User fetch error:', data.error);
         setUser(null);
       } else {
-        console.log('Unexpected response format');
         setUser(null);
       }
     } catch (err) {
-      console.error('Fetch user exception:', err);
       setUser(null);
     } finally {
       setLoading(false);

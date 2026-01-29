@@ -51,12 +51,21 @@ const userSchema = new mongoose.Schema({
   _id: false
 });
 
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+// Hash password before saving (CREATE)
+userSchema.pre('save', async function() {
+  if (!this.isModified('password')) return;
   
   this.password = await bcrypt.hash(this.password, 10);
-  next();
+});
+
+// Hash password before updating (UPDATE)
+userSchema.pre('findOneAndUpdate', async function(next) {
+  const update = this.getUpdate();
+  
+  // Check if password is being updated
+  if (update.password) {
+    update.password = await bcrypt.hash(update.password, 10);
+  }
 });
 
 // Compare password method
