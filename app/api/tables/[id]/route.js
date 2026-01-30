@@ -5,6 +5,30 @@ import { successResponse, errorResponse } from '@/lib/apiResponse';
 
 export const runtime = 'nodejs';
 
+export async function GET(req, { params }) {
+  try {
+    await connectDB();
+
+
+    const { id } = await params;
+
+    const table = await Table.findById(id);
+    if (!table) {
+      return errorResponse('Table not found', 404);
+    }
+
+    return successResponse(
+      table,
+      'Table fetched successfully',
+      200
+    );
+
+  } catch (error) {
+    console.error('Get table error:', error.message);
+    return errorResponse('Failed to fetch table', 500);
+  }
+}
+
 // PUT - Update table
 export async function PUT(req, { params }) {
   try {
