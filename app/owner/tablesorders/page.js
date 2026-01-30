@@ -226,8 +226,8 @@ import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI } from '@/lib/api-clien
           quantity
         });
         
-        if (!response.success) {
-          showNotification('error', `Failed to add item: ${response.message}`);
+        if (response.error || !response.success) {
+          showNotification('error', `Failed to add item: ${response.error || response.message}`);
           return;
         }
       }
@@ -261,18 +261,24 @@ import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI } from '@/lib/api-clien
       setIsLoading(true);
       const { orderId, item } = showEditItemModal;
 
-      const response = await ordersAPI.updateOrderItem(orderId, item._id, {
+      const updateData = {
         quantity: editItemQuantity,
         specialInstructions: editItemInstructions
-      });
+      };
 
-      if (response.success) {
-        showNotification('success', 'Item updated successfully');
+      console.log('Updating item:', { orderId, itemId: item._id, updateData });
+
+      const response = await ordersAPI.updateOrderItem(orderId, item._id, updateData);
+
+      console.log('Update response:', response);
+
+      if (response.success || (response.data && !response.error)) {
+        showNotification('success', response.message || 'Item updated successfully');
         setShowEditItemModal(null);
         await loadSession();
         onUpdate();
       } else {
-        showNotification('error', response.message || 'Failed to update item');
+        showNotification('error', response.error || response.message || 'Failed to update item');
       }
     } catch (error) {
       console.error('Error updating order item:', error);
@@ -290,15 +296,19 @@ import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI } from '@/lib/api-clien
       setIsLoading(true);
       const { orderId, itemId } = showDeleteItemConfirm;
 
+      console.log('Deleting item:', { orderId, itemId });
+
       const response = await ordersAPI.deleteOrderItem(orderId, itemId);
 
-      if (response.success) {
-        showNotification('success', 'Item removed from order');
+      console.log('Delete response:', response);
+
+      if (response.success || (response.data && !response.error)) {
+        showNotification('success', response.message || 'Item removed from order');
         setShowDeleteItemConfirm(null);
         await loadSession();
         onUpdate();
       } else {
-        showNotification('error', response.message || 'Failed to remove item');
+        showNotification('error', response.error || response.message || 'Failed to remove item');
       }
     } catch (error) {
       console.error('Error deleting order item:', error);

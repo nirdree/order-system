@@ -3,6 +3,7 @@ import Order from '@/models/Order';
 import Session from '@/models/Session';
 import { authenticate } from '@/middleware/auth';
 import { successResponse, errorResponse } from '@/lib/apiResponse';
+import mongoose from 'mongoose';
 
 export const runtime = 'nodejs';
 
@@ -43,8 +44,15 @@ export async function PUT(req, { params }) {
     }
 
     // Find the item in the order
+    let itemObjectId;
+    try {
+      itemObjectId = new mongoose.Types.ObjectId(itemId);
+    } catch (err) {
+      return errorResponse('Invalid item ID format', 400);
+    }
+    
     const itemIndex = order.items.findIndex(
-      item => item._id.toString() === itemId
+      item => item._id.equals(itemObjectId)
     );
 
     if (itemIndex === -1) {
@@ -136,14 +144,16 @@ export async function DELETE(req, { params }) {
       return errorResponse('Cannot modify completed or cancelled orders', 400);
     }
 
-    // Check if order has only one item
-    if (order.items.length === 1) {
-      return errorResponse('Cannot delete the only item. Delete the entire order instead.', 400);
-    }
-
     // Find the item in the order
+    let itemObjectId;
+    try {
+      itemObjectId = new mongoose.Types.ObjectId(itemId);
+    } catch (err) {
+      return errorResponse('Invalid item ID format', 400);
+    }
+    
     const itemIndex = order.items.findIndex(
-      item => item._id.toString() === itemId
+      item => item._id.equals(itemObjectId)
     );
 
     if (itemIndex === -1) {
