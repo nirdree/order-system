@@ -29,6 +29,12 @@ export async function GET(req) {
     const placedBy = searchParams.get('placedBy');
     const sessionId = searchParams.get('sessionId');
     const tableId = searchParams.get('tableId');
+    const searchTerm = searchParams.get('search');
+    
+    // Pagination parameters
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '10', 10);
+    const skip = (page - 1) * limit;
 
     let filter = {};
 
@@ -57,15 +63,32 @@ export async function GET(req) {
       filter.table = tableId;
     }
 
+    // Search by order ID
+    if (searchTerm) {
+      filter.orderId = { $regex: searchTerm, $options: 'i' };
+    }
+
+    const totalCount = await Order.countDocuments(filter);
+
     const orders = await Order.find(filter)
       .populate('session', 'sessionId tableNumber')
       .populate('table', 'tableNumber floorNumber')
       .populate('items.menuItem', 'name price imgURL')
       .populate('orderedBy', 'name email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     return successResponse(
-      orders,
+      {
+        orders,
+        pagination: {
+          page,
+          limit,
+          total: totalCount,
+          pages: Math.ceil(totalCount / limit)
+        }
+      },
       'Orders retrieved successfully',
       200
     );

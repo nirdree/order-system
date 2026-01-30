@@ -33,10 +33,10 @@ export default function OwnerLayout({ children }) {
 
   const menuItems = [
     { name: 'Dashboard', href: '/owner/dashboard', icon: LayoutDashboard },
-    { name: 'Orders', href: '/owner/orders', icon: ShoppingCart },
-    { name: 'Menu', href: '/owner/menu', icon: MenuSquare },
-    { name: 'Bills', href: '/owner/bills', icon: Receipt },
-    { name: 'Tables', href: '/owner/tables', icon: UtensilsCrossed },
+    { name: 'Orders', href: '/owner/orders', icon: Receipt },
+    { name: 'Table Orders', href: '/owner/tablesorders', icon: ShoppingCart },
+    { name: 'Menu Management', href: '/owner/menu', icon: MenuSquare },
+    { name: 'Tables Management', href: '/owner/tables', icon: UtensilsCrossed },
     { name: 'User Management', href: '/owner/users', icon: Users },
   ];
 
