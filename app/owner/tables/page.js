@@ -1,11 +1,12 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import {
-  UtensilsCrossed, Plus, Edit, Trash2, Search, Filter, X, Eye,
-  Save, Calendar, MapPin, Users, CheckCircle, AlertCircle,
-  Loader, ChevronDown, QrCode, Download
+  UtensilsCrossed, Plus, Edit, Trash2, Search, Filter, X,
+  Save, MapPin, Users, CheckCircle, AlertCircle,
+  Loader, ChevronDown, QrCode, Download, FileDown
 } from 'lucide-react';
 import QRCode from 'qrcode';
+import jsPDF from 'jspdf';
 import { tablesAPI } from '@/lib/api-client';
 
 const TableManagement = () => {
@@ -34,17 +35,14 @@ const TableManagement = () => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
-  // Load tables from API on component mount
   useEffect(() => {
     loadTables();
   }, []);
 
-  // Filter tables when search term or filters change
   useEffect(() => {
     filterTables();
   }, [searchTerm, filterStatus, filterFloor, tables]);
 
-  // Load tables from API
   const loadTables = async () => {
     try {
       setIsLoading(true);
@@ -63,32 +61,23 @@ const TableManagement = () => {
     }
   };
 
-  // Filter tables based on search and filters
   const filterTables = () => {
     let filtered = [...tables];
-
-    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(table =>
         table.tableNumber.toString().includes(searchTerm) ||
         table.location?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
-    // Status filter
     if (filterStatus !== 'all') {
       filtered = filtered.filter(table => table.status === filterStatus);
     }
-
-    // Floor filter
     if (filterFloor !== 'all') {
       filtered = filtered.filter(table => table.floorNumber === parseInt(filterFloor));
     }
-
     setFilteredTables(filtered);
   };
 
-  // Show notification
   const showNotification = (type, message) => {
     setNotification({ show: true, type, message });
     setTimeout(() => {
@@ -96,11 +85,9 @@ const TableManagement = () => {
     }, 3000);
   };
 
-  // Validation functions
   const validateTableNumber = (tableNumber) => {
     if (!tableNumber) return 'Table number is required';
     if (tableNumber < 1) return 'Table number must be positive';
-    // Check for duplicate table number (excluding current table in edit mode)
     const duplicate = tables.find(t =>
       t.tableNumber === parseInt(tableNumber) && (!isEditMode || t._id !== currentTable._id)
     );
@@ -120,7 +107,6 @@ const TableManagement = () => {
     return '';
   };
 
-  // Validate field
   const validateField = (name, value) => {
     let error = '';
     switch (name) {
@@ -140,29 +126,21 @@ const TableManagement = () => {
     return error;
   };
 
-  // Handle form input change
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     const fieldValue = type === 'checkbox' ? checked : value;
-
-    setFormData(prev => ({
-      ...prev,
-      [name]: fieldValue
-    }));
-
+    setFormData(prev => ({ ...prev, [name]: fieldValue }));
     if (touched[name]) {
       validateField(name, fieldValue);
     }
   };
 
-  // Handle blur
   const handleBlur = (e) => {
     const { name, value } = e.target;
     setTouched(prev => ({ ...prev, [name]: true }));
     validateField(name, value);
   };
 
-  // Validate entire form
   const validateForm = () => {
     const tableNumberError = validateTableNumber(formData.tableNumber);
     const floorNumberError = validateFloorNumber(formData.floorNumber);
@@ -184,7 +162,6 @@ const TableManagement = () => {
     return !Object.values(newErrors).some(error => error !== '');
   };
 
-  // Open modal for adding new table
   const openAddModal = () => {
     setIsEditMode(false);
     setCurrentTable(null);
@@ -201,7 +178,6 @@ const TableManagement = () => {
     setIsModalOpen(true);
   };
 
-  // Open modal for editing table
   const openEditModal = (table) => {
     setIsEditMode(true);
     setCurrentTable(table);
@@ -218,7 +194,6 @@ const TableManagement = () => {
     setIsModalOpen(true);
   };
 
-  // Close modal
   const closeModal = () => {
     setIsModalOpen(false);
     setIsEditMode(false);
@@ -235,10 +210,8 @@ const TableManagement = () => {
     setTouched({});
   };
 
-  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) {
       showNotification('error', 'Please fix all errors before submitting');
       return;
@@ -248,7 +221,6 @@ const TableManagement = () => {
 
     try {
       if (isEditMode) {
-        // Update existing table
         const updateData = {
           tableNumber: parseInt(formData.tableNumber),
           floorNumber: parseInt(formData.floorNumber),
@@ -268,7 +240,6 @@ const TableManagement = () => {
           showNotification('error', response.message || 'Failed to update table');
         }
       } else {
-        // Create new table
         const newTableData = {
           tableNumber: parseInt(formData.tableNumber),
           floorNumber: parseInt(formData.floorNumber),
@@ -296,7 +267,6 @@ const TableManagement = () => {
     }
   };
 
-  // Delete table
   const handleDelete = (tableId) => {
     setDeleteConfirm({ show: true, tableId });
   };
@@ -321,7 +291,6 @@ const TableManagement = () => {
     }
   };
 
-  // Toggle table status
   const toggleTableStatus = async (tableId) => {
     const table = tables.find(t => t._id === tableId);
 
@@ -345,7 +314,6 @@ const TableManagement = () => {
     }
   };
 
-  // Generate QR Code
   const generateQRCode = async (table) => {
     try {
       const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
@@ -367,69 +335,155 @@ const TableManagement = () => {
     }
   };
 
-  // Download QR Code
-  const downloadQRCode = () => {
+  const downloadQRCodeImage = () => {
     const link = document.createElement('a');
     link.download = `table-${qrModal.table.tableNumber}-qr.png`;
     link.href = qrModal.qrDataUrl;
     link.click();
+    showNotification('success', 'QR Code image downloaded');
   };
 
-  // Get status badge color
-  const getStatusBadgeColor = (status) => {
-    switch (status) {
-      case 'available':
-        return 'bg-gradient-to-r from-green-500 to-emerald-500';
-      case 'occupied':
-        return 'bg-gradient-to-r from-red-500 to-rose-500';
-      default:
-        return 'bg-gray-500';
+  const downloadQRCodePDF = async () => {
+    try {
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // Background gradient effect
+      pdf.setFillColor(255, 248, 241);
+      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
+      // Decorative border
+      pdf.setDrawColor(251, 146, 60);
+      pdf.setLineWidth(1);
+      pdf.rect(10, 10, pageWidth - 20, pageHeight - 20, 'S');
+
+      // Cafe Name
+      pdf.setFontSize(28);
+      pdf.setTextColor(234, 88, 12);
+      pdf.setFont('helvetica', 'bold');
+      const cafeName = 'My Cafe';
+      const cafeNameWidth = pdf.getTextWidth(cafeName);
+      pdf.text(cafeName, (pageWidth - cafeNameWidth) / 2, 30);
+
+      // Decorative line under cafe name
+      pdf.setDrawColor(251, 146, 60);
+      pdf.setLineWidth(0.5);
+      pdf.line(pageWidth / 2 - 30, 33, pageWidth / 2 + 30, 33);
+
+      // Table Information
+      pdf.setFontSize(20);
+      pdf.setTextColor(55, 65, 81);
+      pdf.setFont('helvetica', 'bold');
+      const tableText = `Table ${qrModal.table.tableNumber}`;
+      const tableTextWidth = pdf.getTextWidth(tableText);
+      pdf.text(tableText, (pageWidth - tableTextWidth) / 2, 45);
+
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'normal');
+      const floorText = `Floor ${qrModal.table.floorNumber} • ${qrModal.table.capacity} Seats`;
+      const floorTextWidth = pdf.getTextWidth(floorText);
+      pdf.text(floorText, (pageWidth - floorTextWidth) / 2, 52);
+
+      // QR Code with border
+      const qrSize = 100;
+      const qrX = (pageWidth - qrSize) / 2;
+      const qrY = 65;
+      
+      // QR Code background
+      pdf.setFillColor(255, 255, 255);
+      pdf.roundedRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10, 3, 3, 'F');
+      
+      // QR Code border
+      pdf.setDrawColor(251, 146, 60);
+      pdf.setLineWidth(0.8);
+      pdf.roundedRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10, 3, 3, 'S');
+
+      // Add QR Code
+      pdf.addImage(qrModal.qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+
+      // "SCAN ME" Text with icon effect
+      pdf.setFontSize(24);
+      pdf.setTextColor(234, 88, 12);
+      pdf.setFont('helvetica', 'bold');
+      const scanText = 'SCAN ME';
+      const scanTextWidth = pdf.getTextWidth(scanText);
+      pdf.text(scanText, (pageWidth - scanTextWidth) / 2, qrY + qrSize + 20);
+
+      
+
+      // Instructions
+      pdf.setFontSize(14);
+      pdf.setTextColor(75, 85, 99);
+      pdf.setFont('helvetica', 'normal');
+      const instruction1 = 'Scan this QR code to';
+      const instruction2 = 'view our digital menu';
+      const inst1Width = pdf.getTextWidth(instruction1);
+      const inst2Width = pdf.getTextWidth(instruction2);
+      pdf.text(instruction1, (pageWidth - inst1Width) / 2, qrY + qrSize + 32);
+      pdf.text(instruction2, (pageWidth - inst2Width) / 2, qrY + qrSize + 40);
+
+
+      // Bottom decorative section
+      pdf.setFillColor(251, 146, 60);
+      pdf.rect(0, pageHeight - 25, pageWidth, 25, 'F');
+
+      // Footer text
+      pdf.setFontSize(12);
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFont('helvetica', 'bold');
+      const footerText = 'Enjoy Your Meal!';
+      const footerWidth = pdf.getTextWidth(footerText);
+      pdf.text(footerText, (pageWidth - footerWidth) / 2, pageHeight - 15);
+
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'normal');
+      const subFooter = 'Scan • Order • Enjoy';
+      const subFooterWidth = pdf.getTextWidth(subFooter);
+      pdf.text(subFooter, (pageWidth - subFooterWidth) / 2, pageHeight - 8);
+
+      // Save PDF
+      pdf.save(`Table-${qrModal.table.tableNumber}-QR-Menu.pdf`);
+      showNotification('success', 'QR Code PDF downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      showNotification('error', 'Failed to generate PDF');
     }
   };
 
-  // Get unique floor numbers
   const uniqueFloors = [...new Set(tables.map(t => t.floorNumber))].sort((a, b) => a - b);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-3 sm:p-4">
       {/* Notification */}
       {notification.show && (
-        <div className={`fixed top-6 right-6 z-50 animate-slide-in-right ${
-          notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        } text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3`}>
-          {notification.type === 'success' ? (
-            <CheckCircle className="w-5 h-5" />
-          ) : (
-            <AlertCircle className="w-5 h-5" />
-          )}
-          <span className="font-semibold">{notification.message}</span>
+        <div className={`fixed top-3 right-3 z-50 animate-slide-in ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 text-sm`}>
+          {notification.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+          <span className="font-medium">{notification.message}</span>
         </div>
       )}
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm.show && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-scale-in">
-            <div className="text-center mb-6">
-              <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-8 h-8 text-red-600" />
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl">
+            <div className="text-center mb-4">
+              <div className="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <AlertCircle className="w-6 h-6 text-red-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Delete Table?</h3>
-              <p className="text-gray-600">
-                Are you sure you want to delete this table? This action cannot be undone.
-              </p>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Delete Table?</h3>
+              <p className="text-sm text-gray-600">This action cannot be undone.</p>
             </div>
-            <div className="flex gap-4">
-              <button
-                onClick={() => setDeleteConfirm({ show: false, tableId: null })}
-                className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all"
-              >
+            <div className="flex gap-2">
+              <button onClick={() => setDeleteConfirm({ show: false, tableId: null })} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 text-sm">
                 Cancel
               </button>
-              <button
-                onClick={confirmDelete}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl font-semibold hover:from-red-600 hover:to-rose-700 transition-all shadow-lg"
-              >
+              <button onClick={confirmDelete} className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-medium text-sm">
                 Delete
               </button>
             </div>
@@ -439,140 +493,125 @@ const TableManagement = () => {
 
       {/* QR Code Modal */}
       {qrModal.show && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-scale-in">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-gray-900">Table QR Code</h3>
-              <button
-                onClick={() => setQrModal({ show: false, table: null, qrDataUrl: '' })}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-6 h-6 text-gray-600" />
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-4 sm:p-6 max-w-md w-full shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Table QR Code</h3>
+              <button onClick={() => setQrModal({ show: false, table: null, qrDataUrl: '' })} className="p-1.5 hover:bg-gray-100 rounded-lg">
+                <X className="w-5 h-5 text-gray-600" />
               </button>
             </div>
             
-            <div className="text-center mb-6">
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-2xl mb-4">
-                <img 
-                  src={qrModal.qrDataUrl} 
-                  alt="QR Code" 
-                  className="w-full h-auto"
-                />
+            <div className="text-center mb-4">
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-lg mb-3 border border-amber-200">
+                <img src={qrModal.qrDataUrl} alt="QR Code" className="w-full h-auto" />
               </div>
-              <p className="text-gray-700 font-semibold">
-                Table {qrModal.table?.tableNumber} - Floor {qrModal.table?.floorNumber}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Scan to view menu
-              </p>
+              <p className="text-gray-900 font-bold text-base">Table {qrModal.table?.tableNumber}</p>
+              <p className="text-sm text-gray-600">Floor {qrModal.table?.floorNumber} • {qrModal.table?.capacity} Seats</p>
+              <p className="text-xs text-gray-500 mt-1">Scan to view digital menu</p>
             </div>
 
-            <button
-              onClick={downloadQRCode}
-              className="w-full px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-rose-600 transition-all shadow-lg flex items-center justify-center gap-2"
-            >
-              <Download className="w-5 h-5" />
-              Download QR Code
-            </button>
+            <div className="space-y-2">
+              <button
+                onClick={downloadQRCodePDF}
+                className="w-full px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2 text-sm"
+              >
+                <FileDown className="w-4 h-4" />
+                Download PDF (Print & Stick)
+              </button>
+              <button
+                onClick={downloadQRCodeImage}
+                className="w-full px-4 py-2.5 bg-blue-500 text-white rounded-lg font-semibold flex items-center justify-center gap-2 text-sm"
+              >
+                <Download className="w-4 h-4" />
+                Download Image Only
+              </button>
+            </div>
+
+            <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+              <p className="text-xs text-gray-700 text-center">
+                💡 <strong>Tip:</strong> Download PDF, print it, and stick on your table for easy customer access!
+              </p>
+            </div>
           </div>
         </div>
       )}
 
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="bg-white/80 backdrop-blur-lg rounded-3xl p-8 shadow-xl border-2 border-amber-100">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-4 rounded-2xl">
-                <UtensilsCrossed className="w-8 h-8 text-white" />
+      <div className="max-w-7xl mx-auto mb-3">
+        <div className="bg-white rounded-xl p-4 shadow-md border border-amber-100">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2.5 rounded-lg flex-shrink-0">
+                <UtensilsCrossed className="w-5 h-5 text-white" />
               </div>
-              <div>
-                <h1 className="text-3xl font-black text-gray-900">Table Management</h1>
-                <p className="text-gray-600">Manage your cafe tables and seating</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">Table Management</h1>
+                <p className="text-xs text-gray-600 hidden sm:block">Manage tables & seating</p>
               </div>
             </div>
-            <button
-              onClick={openAddModal}
-              className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:from-orange-600 hover:to-rose-600 hover:scale-105 transition-all"
-            >
-              <Plus className="w-5 h-5" />
-              Add Table
+            <button onClick={openAddModal} className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-3 py-2 rounded-lg font-semibold text-sm flex-shrink-0">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Add</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="max-w-7xl mx-auto mb-6">
-        <div className="bg-white/80 backdrop-blur-lg rounded-3xl p-6 shadow-lg border-2 border-amber-100">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+      <div className="max-w-7xl mx-auto mb-3">
+        <div className="bg-white rounded-xl p-3 shadow-md border border-amber-100">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+            <div className="relative sm:col-span-3">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search by table number or location..."
+                placeholder="Search tables..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500"
               />
             </div>
 
-            {/* Status Filter */}
             <div className="relative">
-              <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full pl-12 pr-10 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all appearance-none cursor-pointer"
-              >
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="w-full pl-9 pr-8 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 appearance-none">
                 <option value="all">All Status</option>
                 <option value="available">Available</option>
                 <option value="occupied">Occupied</option>
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
             </div>
 
-            {/* Floor Filter */}
             <div className="relative">
-              <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <select
-                value={filterFloor}
-                onChange={(e) => setFilterFloor(e.target.value)}
-                className="w-full pl-12 pr-10 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all appearance-none cursor-pointer"
-              >
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <select value={filterFloor} onChange={(e) => setFilterFloor(e.target.value)} className="w-full pl-9 pr-8 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 appearance-none">
                 <option value="all">All Floors</option>
                 {uniqueFloors.map(floor => (
                   <option key={floor} value={floor}>Floor {floor}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+            </div>
+
+            <div className="bg-amber-50 rounded-lg px-3 py-2 border border-amber-200 text-center">
+              <p className="text-xs text-gray-600">Total</p>
+              <p className="text-lg font-bold text-amber-700">{tables.length}</p>
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-4 border-2 border-blue-200">
-              <p className="text-sm text-gray-600 mb-1">Total Tables</p>
-              <p className="text-2xl font-bold text-blue-700">{tables.length}</p>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-green-50 rounded-lg p-2 border border-green-200 text-center">
+              <p className="text-xs text-gray-600 mb-0.5">Available</p>
+              <p className="text-base font-bold text-green-700">{tables.filter(t => t.status === 'available').length}</p>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 border-2 border-green-200">
-              <p className="text-sm text-gray-600 mb-1">Available</p>
-              <p className="text-2xl font-bold text-green-700">
-                {tables.filter(t => t.status === 'available').length}
-              </p>
+            <div className="bg-red-50 rounded-lg p-2 border border-red-200 text-center">
+              <p className="text-xs text-gray-600 mb-0.5">Occupied</p>
+              <p className="text-base font-bold text-red-700">{tables.filter(t => t.status === 'occupied').length}</p>
             </div>
-            <div className="bg-gradient-to-br from-red-50 to-rose-50 rounded-2xl p-4 border-2 border-red-200">
-              <p className="text-sm text-gray-600 mb-1">Occupied</p>
-              <p className="text-2xl font-bold text-red-700">
-                {tables.filter(t => t.status === 'occupied').length}
-              </p>
-            </div>
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4 border-2 border-purple-200">
-              <p className="text-sm text-gray-600 mb-1">Total Capacity</p>
-              <p className="text-2xl font-bold text-purple-700">
-                {tables.reduce((sum, t) => sum + t.capacity, 0)}
-              </p>
+            <div className="bg-purple-50 rounded-lg p-2 border border-purple-200 text-center">
+              <p className="text-xs text-gray-600 mb-0.5">Capacity</p>
+              <p className="text-base font-bold text-purple-700">{tables.reduce((sum, t) => sum + t.capacity, 0)}</p>
             </div>
           </div>
         </div>
@@ -580,90 +619,71 @@ const TableManagement = () => {
 
       {/* Tables Grid */}
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {filteredTables.length === 0 ? (
             <div className="col-span-full">
-              <div className="bg-white/80 backdrop-blur-lg rounded-3xl p-12 text-center shadow-lg border-2 border-amber-100">
-                <div className="bg-gray-100 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-                  <UtensilsCrossed className="w-12 h-12 text-gray-400" />
+              <div className="bg-white rounded-xl p-8 text-center shadow-md border border-amber-100">
+                <div className="bg-gray-100 p-4 rounded-full w-16 h-16 mx-auto mb-3 flex items-center justify-center">
+                  <UtensilsCrossed className="w-8 h-8 text-gray-400" />
                 </div>
-                <p className="text-gray-600 font-semibold text-lg">No tables found</p>
-                <p className="text-gray-500 text-sm">Try adjusting your filters or add a new table</p>
+                <p className="text-gray-600 font-semibold">No tables found</p>
+                <p className="text-gray-500 text-sm">Try adjusting filters or add a new table</p>
               </div>
             </div>
           ) : (
             filteredTables.map((table) => (
-              <div
-                key={table._id}
-                className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border-2 border-amber-100 hover:shadow-xl transition-all"
-              >
-                {/* Table Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-3 rounded-xl">
-                      <UtensilsCrossed className="w-6 h-6 text-white" />
+              <div key={table._id} className="bg-white rounded-xl p-3 shadow-md border border-amber-100 hover:shadow-lg transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-2 rounded-lg">
+                      <UtensilsCrossed className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900">Table {table.tableNumber}</h3>
-                      <p className="text-sm text-gray-500">Floor {table.floorNumber}</p>
+                      <h3 className="text-base font-bold text-gray-900">Table {table.tableNumber}</h3>
+                      <p className="text-xs text-gray-500">Floor {table.floorNumber}</p>
                     </div>
                   </div>
                   <button
                     onClick={() => generateQRCode(table)}
-                    className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
-                    title="Generate QR Code"
+                    className="p-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
+                    title="QR Code"
                   >
-                    <QrCode className="w-5 h-5" />
+                    <QrCode className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* Table Info */}
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <Users className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm">Capacity: <strong>{table.capacity}</strong> people</span>
+                <div className="space-y-2 mb-3">
+                  <div className="flex items-center gap-1.5 text-gray-700">
+                    <Users className="w-3.5 h-3.5 text-gray-400" />
+                    <span className="text-xs">Capacity: <strong>{table.capacity}</strong></span>
                   </div>
                   {table.location && (
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <MapPin className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm">{table.location}</span>
+                    <div className="flex items-center gap-1.5 text-gray-700">
+                      <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                      <span className="text-xs">{table.location}</span>
                     </div>
                   )}
-                  <div>
-                    <button
-                      onClick={() => toggleTableStatus(table._id)}
-                      className={`w-full px-3 py-2 rounded-lg text-sm font-bold ${
-                        table.status === 'available'
-                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                          : 'bg-red-100 text-red-700 hover:bg-red-200'
-                      } transition-colors`}
-                    >
-                      {table.status === 'available' ? 'Available' : 'Occupied'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2 pt-4 border-t border-gray-200">
                   <button
-                    onClick={() => openEditModal(table)}
-                    className="flex-1 px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center gap-2"
+                    onClick={() => toggleTableStatus(table._id)}
+                    className={`w-full px-2 py-1.5 rounded-lg text-xs font-semibold ${
+                      table.status === 'available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    }`}
                   >
-                    <Edit className="w-4 h-4" />
-                    <span className="text-sm font-semibold">Edit</span>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(table._id)}
-                    className="flex-1 px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span className="text-sm font-semibold">Delete</span>
+                    {table.status === 'available' ? 'Available' : 'Occupied'}
                   </button>
                 </div>
 
-                {/* Inactive Badge */}
+                <div className="flex gap-2 pt-3 border-t border-gray-100">
+                  <button onClick={() => openEditModal(table)} className="flex-1 px-2 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium flex items-center justify-center gap-1">
+                    <Edit className="w-3.5 h-3.5" />Edit
+                  </button>
+                  <button onClick={() => handleDelete(table._id)} className="flex-1 px-2 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-medium flex items-center justify-center gap-1">
+                    <Trash2 className="w-3.5 h-3.5" />Delete
+                  </button>
+                </div>
+
                 {!table.isActive && (
-                  <div className="mt-3 px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold text-center">
+                  <div className="mt-2 px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-semibold text-center">
                     Inactive
                   </div>
                 )}
@@ -675,34 +695,24 @@ const TableManagement = () => {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl my-8 animate-scale-in">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-6 rounded-t-3xl flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-2 rounded-xl">
-                  {isEditMode ? <Edit className="w-6 h-6 text-white" /> : <Plus className="w-6 h-6 text-white" />}
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-xl sm:rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+              <div className="flex items-center gap-2">
+                <div className="bg-white/20 p-1.5 rounded-lg">
+                  {isEditMode ? <Edit className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
                 </div>
-                <h2 className="text-2xl font-bold text-white">
-                  {isEditMode ? 'Edit Table' : 'Add New Table'}
-                </h2>
+                <h2 className="text-lg font-bold text-white">{isEditMode ? 'Edit Table' : 'Add New Table'}</h2>
               </div>
-              <button
-                onClick={closeModal}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-              >
-                <X className="w-6 h-6 text-white" />
+              <button onClick={closeModal} className="p-1.5 hover:bg-white/20 rounded-lg">
+                <X className="w-5 h-5 text-white" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <form onSubmit={handleSubmit} className="p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Table Number */}
+            <form onSubmit={handleSubmit} className="p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Table Number *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Table Number *</label>
                   <input
                     type="number"
                     name="tableNumber"
@@ -711,25 +721,17 @@ const TableManagement = () => {
                     onBlur={handleBlur}
                     placeholder="1"
                     min="1"
-                    className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                      errors.tableNumber && touched.tableNumber
-                        ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-                        : 'border-gray-200 focus:border-amber-500 focus:ring-amber-200'
-                    }`}
+                    className={`w-full px-3 py-2 text-sm bg-gray-50 border rounded-lg focus:outline-none focus:ring-1 ${errors.tableNumber && touched.tableNumber ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'border-gray-200 focus:border-amber-500 focus:ring-amber-200'}`}
                   />
                   {errors.tableNumber && touched.tableNumber && (
-                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                      <AlertCircle className="w-4 h-4" />
-                      {errors.tableNumber}
+                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />{errors.tableNumber}
                     </p>
                   )}
                 </div>
 
-                {/* Floor Number */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Floor Number *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Floor Number *</label>
                   <input
                     type="number"
                     name="floorNumber"
@@ -738,27 +740,19 @@ const TableManagement = () => {
                     onBlur={handleBlur}
                     placeholder="1"
                     min="1"
-                    className={`w-full px-4 py-3 bg-gray-50 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                      errors.floorNumber && touched.floorNumber
-                        ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-                        : 'border-gray-200 focus:border-amber-500 focus:ring-amber-200'
-                    }`}
+                    className={`w-full px-3 py-2 text-sm bg-gray-50 border rounded-lg focus:outline-none focus:ring-1 ${errors.floorNumber && touched.floorNumber ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'border-gray-200 focus:border-amber-500 focus:ring-amber-200'}`}
                   />
                   {errors.floorNumber && touched.floorNumber && (
-                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                      <AlertCircle className="w-4 h-4" />
-                      {errors.floorNumber}
+                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />{errors.floorNumber}
                     </p>
                   )}
                 </div>
 
-                {/* Capacity */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Capacity *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Capacity *</label>
                   <div className="relative">
-                    <Users className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
                       type="number"
                       name="capacity"
@@ -767,94 +761,69 @@ const TableManagement = () => {
                       onBlur={handleBlur}
                       placeholder="4"
                       min="1"
-                      className={`w-full pl-12 pr-4 py-3 bg-gray-50 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                        errors.capacity && touched.capacity
-                          ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-                          : 'border-gray-200 focus:border-amber-500 focus:ring-amber-200'
-                      }`}
+                      className={`w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border rounded-lg focus:outline-none focus:ring-1 ${errors.capacity && touched.capacity ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'border-gray-200 focus:border-amber-500 focus:ring-amber-200'}`}
                     />
                   </div>
                   {errors.capacity && touched.capacity && (
-                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                      <AlertCircle className="w-4 h-4" />
-                      {errors.capacity}
+                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />{errors.capacity}
                     </p>
                   )}
                 </div>
 
-                {/* Status */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Status *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Status *</label>
                   <select
                     name="status"
                     value={formData.status}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
                   >
                     <option value="available">Available</option>
                     <option value="occupied">Occupied</option>
                   </select>
                 </div>
 
-                {/* Location */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Location
-                  </label>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Location</label>
                   <div className="relative">
-                    <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
                       type="text"
                       name="location"
                       value={formData.location}
                       onChange={handleInputChange}
                       placeholder="Near window, Corner, etc."
-                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                      className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
                     />
                   </div>
                 </div>
 
-                {/* Active Status */}
-                <div className="md:col-span-2">
-                  <label className="flex items-center gap-3 cursor-pointer group">
+                <div className="sm:col-span-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       name="isActive"
                       checked={formData.isActive}
                       onChange={handleInputChange}
-                      className="w-5 h-5 text-amber-600 bg-gray-100 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
+                      className="w-4 h-4 text-amber-600 bg-gray-100 border-gray-300 rounded focus:ring-amber-500 focus:ring-1"
                     />
-                    <span className="text-sm font-bold text-gray-700 group-hover:text-amber-600 transition-colors">
-                      Active Table
-                    </span>
+                    <span className="text-sm font-semibold text-gray-700">Active Table</span>
                   </label>
                 </div>
               </div>
 
-              {/* Form Actions */}
-              <div className="flex gap-4 mt-8">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all"
-                >
+              <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100 sticky bottom-0 bg-white">
+                <button type="button" onClick={closeModal} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 text-sm">
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-rose-600 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-1.5"
                 >
-                  {isLoading ? (
-                    <Loader className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <Save className="w-5 h-5" />
-                      {isEditMode ? 'Update Table' : 'Create Table'}
-                    </>
-                  )}
+                  {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {isEditMode ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>
@@ -863,35 +832,11 @@ const TableManagement = () => {
       )}
 
       <style jsx>{`
-        @keyframes slide-in-right {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
+        @keyframes slide-in {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
         }
-        
-        @keyframes scale-in {
-          from {
-            transform: scale(0.9);
-            opacity: 0;
-          }
-          to {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-        
-        .animate-slide-in-right {
-          animation: slide-in-right 0.3s ease-out;
-        }
-        
-        .animate-scale-in {
-          animation: scale-in 0.3s ease-out;
-        }
+        .animate-slide-in { animation: slide-in 0.3s; }
       `}</style>
     </div>
   );

@@ -23,6 +23,7 @@ const iconOptions = [
 
 const MenuDashboard = () => {
   const [activeTab, setActiveTab] = useState('menu');
+  const [gridColumns, setGridColumns] = useState(2); // Grid layout: 2, 3, 4, or 5 columns (default 2 for mobile-friendly)
 
   // Menu Items State
   const [menuItems, setMenuItems] = useState([]);
@@ -164,13 +165,11 @@ const MenuDashboard = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       showNotification('error', 'Please upload an image file');
       return;
     }
 
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       showNotification('error', 'Image size must be less than 5MB');
       return;
@@ -598,45 +597,31 @@ const MenuDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-3 sm:p-4">
       {/* Notification */}
       {notification.show && (
-        <div className={`fixed top-6 right-6 z-50 animate-slide-in-right ${
-          notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        } text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3`}>
-          {notification.type === 'success' ? (
-            <CheckCircle className="w-5 h-5" />
-          ) : (
-            <AlertCircle className="w-5 h-5" />
-          )}
-          <span className="font-semibold">{notification.message}</span>
+        <div className={`fixed top-3 right-3 z-50 animate-slide-in ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 text-sm`}>
+          {notification.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+          <span className="font-medium">{notification.message}</span>
         </div>
       )}
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation Modal */}
       {deleteConfirm.show && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-scale-in">
-            <div className="text-center mb-6">
-              <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-8 h-8 text-red-600" />
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl">
+            <div className="text-center mb-4">
+              <div className="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <AlertCircle className="w-6 h-6 text-red-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Delete {deleteConfirm.type === 'menu' ? 'Item' : 'Category'}?</h3>
-              <p className="text-gray-600">
-                This action cannot be undone. All associated data will be permanently removed.
-              </p>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Delete {deleteConfirm.type === 'menu' ? 'Item' : 'Category'}?</h3>
+              <p className="text-sm text-gray-600">This action cannot be undone.</p>
             </div>
-            <div className="flex gap-4">
-              <button
-                onClick={() => setDeleteConfirm({ show: false, id: null, type: '' })}
-                className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all"
-              >
+            <div className="flex gap-2">
+              <button onClick={() => setDeleteConfirm({ show: false, id: null, type: '' })} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 text-sm">
                 Cancel
               </button>
-              <button
-                onClick={confirmDelete}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl font-semibold hover:from-red-600 hover:to-rose-700 transition-all shadow-lg"
-              >
+              <button onClick={confirmDelete} className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-medium text-sm">
                 Delete
               </button>
             </div>
@@ -645,141 +630,207 @@ const MenuDashboard = () => {
       )}
 
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="bg-white/80 backdrop-blur-lg rounded-3xl p-8 shadow-xl border-2 border-amber-100">
-          <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-4 rounded-2xl shadow-lg">
-              <LayoutDashboard className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-black text-gray-900">
-                Menu Dashboard
-              </h1>
-              <p className="text-gray-600 font-medium">Manage your cafe menu and categories</p>
+      <div className="max-w-7xl mx-auto mb-3">
+        <div className="bg-white rounded-xl p-4 shadow-md border border-amber-100">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2.5 rounded-lg flex-shrink-0">
+                <LayoutDashboard className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">Menu Dashboard</h1>
+                <p className="text-xs text-gray-600 hidden sm:block">Manage menu & categories</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 mb-6 max-w-7xl mx-auto">
-        <button
-          onClick={() => setActiveTab('menu')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
-            activeTab === 'menu'
-              ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg'
-              : 'bg-white/80 backdrop-blur-lg border-2 border-amber-100 text-gray-700 hover:bg-white'
-          }`}
-        >
-          <UtensilsCrossed className="w-5 h-5" />
-          Menu Items
-        </button>
-        <button
-          onClick={() => setActiveTab('categories')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
-            activeTab === 'categories'
-              ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg'
-              : 'bg-white/80 backdrop-blur-lg border-2 border-amber-100 text-gray-700 hover:bg-white'
-          }`}
-        >
-          <Folder className="w-5 h-5" />
-          Categories
-        </button>
+      <div className="max-w-7xl mx-auto mb-3">
+        <div className="bg-white rounded-xl p-2 shadow-md border border-amber-100 flex gap-2">
+          <button
+            onClick={() => setActiveTab('menu')}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
+              activeTab === 'menu'
+                ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <UtensilsCrossed className="w-4 h-4" />
+            <span className="hidden sm:inline">Menu Items</span>
+            <span className="sm:hidden">Menu</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('categories')}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
+              activeTab === 'categories'
+                ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Folder className="w-4 h-4" />
+            <span className="hidden sm:inline">Categories</span>
+            <span className="sm:hidden">Category</span>
+          </button>
+        </div>
       </div>
 
       {/* Menu Items Tab */}
       {activeTab === 'menu' && (
         <>
-          <div className="max-w-7xl mx-auto mb-6">
-            <div className="bg-white/80 backdrop-blur-lg rounded-3xl p-6 shadow-lg border-2 border-amber-100">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Menu Items</h2>
-                <button
-                  onClick={openAddMenuModal}
-                  className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:from-orange-600 hover:to-rose-600 hover:scale-105 transition-all"
-                >
-                  <Plus className="w-5 h-5" />
-                  Add Item
-                </button>
+          <div className="max-w-7xl mx-auto mb-3">
+            <div className="bg-white rounded-xl p-3 shadow-md border border-amber-100">
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-base font-bold text-gray-900">Menu Items</h2>
+                <div className="flex items-center gap-2">
+                  {/* Grid View Selector */}
+                  <div className="hidden lg:flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+                    <button
+                      onClick={() => setGridColumns(2)}
+                      className={`p-1.5 rounded transition-all ${gridColumns === 2 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                      title="2 columns"
+                    >
+                      <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="3" width="8" height="8" strokeWidth="2" />
+                        <rect x="13" y="3" width="8" height="8" strokeWidth="2" />
+                        <rect x="3" y="13" width="8" height="8" strokeWidth="2" />
+                        <rect x="13" y="13" width="8" height="8" strokeWidth="2" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setGridColumns(3)}
+                      className={`p-1.5 rounded transition-all ${gridColumns === 3 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                      title="3 columns"
+                    >
+                      <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="3" width="5.5" height="5.5" strokeWidth="2" />
+                        <rect x="9.25" y="3" width="5.5" height="5.5" strokeWidth="2" />
+                        <rect x="16.5" y="3" width="5.5" height="5.5" strokeWidth="2" />
+                        <rect x="2" y="10" width="5.5" height="5.5" strokeWidth="2" />
+                        <rect x="9.25" y="10" width="5.5" height="5.5" strokeWidth="2" />
+                        <rect x="16.5" y="10" width="5.5" height="5.5" strokeWidth="2" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setGridColumns(4)}
+                      className={`p-1.5 rounded transition-all ${gridColumns === 4 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                      title="4 columns"
+                    >
+                      <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="3" width="4" height="4" strokeWidth="2" />
+                        <rect x="8" y="3" width="4" height="4" strokeWidth="2" />
+                        <rect x="14" y="3" width="4" height="4" strokeWidth="2" />
+                        <rect x="20" y="3" width="2" height="4" strokeWidth="2" />
+                        <rect x="2" y="9" width="4" height="4" strokeWidth="2" />
+                        <rect x="8" y="9" width="4" height="4" strokeWidth="2" />
+                        <rect x="14" y="9" width="4" height="4" strokeWidth="2" />
+                        <rect x="20" y="9" width="2" height="4" strokeWidth="2" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setGridColumns(5)}
+                      className={`p-1.5 rounded transition-all ${gridColumns === 5 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                      title="5 columns"
+                    >
+                      <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="4" width="3" height="3" strokeWidth="2" />
+                        <rect x="6.5" y="4" width="3" height="3" strokeWidth="2" />
+                        <rect x="11" y="4" width="3" height="3" strokeWidth="2" />
+                        <rect x="15.5" y="4" width="3" height="3" strokeWidth="2" />
+                        <rect x="20" y="4" width="2" height="3" strokeWidth="2" />
+                        <rect x="2" y="9" width="3" height="3" strokeWidth="2" />
+                        <rect x="6.5" y="9" width="3" height="3" strokeWidth="2" />
+                        <rect x="11" y="9" width="3" height="3" strokeWidth="2" />
+                        <rect x="15.5" y="9" width="3" height="3" strokeWidth="2" />
+                        <rect x="20" y="9" width="2" height="3" strokeWidth="2" />
+                      </svg>
+                    </button>
+                  </div>
+                  <button
+                    onClick={openAddMenuModal}
+                    className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-3 py-2 rounded-lg font-semibold text-sm flex-shrink-0"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">Add</span>
+                  </button>
+                </div>
               </div>
 
               {/* Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
+                <div className="relative sm:col-span-2 lg:col-span-4">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
                     placeholder="Search items..."
                     value={searchTermItems}
                     onChange={(e) => setSearchTermItems(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 text-gray-900 placeholder-gray-500 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                    className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500"
                   />
                 </div>
 
                 <div className="relative">
-                  <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <select
                     value={filterCategory}
                     onChange={(e) => setFilterCategory(e.target.value)}
-                    className="w-full pl-12 pr-10 py-3 bg-gray-50 border-2 border-gray-200 text-gray-900 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all appearance-none cursor-pointer"
+                    className="w-full pl-9 pr-8 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 appearance-none"
                   >
                     <option value="all">All Categories</option>
                     {categories.map(cat => (
                       <option key={cat.id} value={cat.id}>{cat.id}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
                 </div>
 
                 <div className="relative">
-                  <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <select
                     value={filterAvailable}
                     onChange={(e) => setFilterAvailable(e.target.value)}
-                    className="w-full pl-12 pr-10 py-3 bg-gray-50 border-2 border-gray-200 text-gray-900 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all appearance-none cursor-pointer"
+                    className="w-full pl-9 pr-8 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 appearance-none"
                   >
                     <option value="all">All Items</option>
                     <option value="available">Available</option>
                     <option value="unavailable">Unavailable</option>
                   </select>
-                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
                 </div>
 
                 <div className="relative">
-                  <Star className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                  <Star className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <select
                     value={filterMostSell}
                     onChange={(e) => setFilterMostSell(e.target.value)}
-                    className="w-full pl-12 pr-10 py-3 bg-gray-50 border-2 border-gray-200 text-gray-900 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all appearance-none cursor-pointer"
+                    className="w-full pl-9 pr-8 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 appearance-none"
                   >
                     <option value="all">All Items</option>
                     <option value="true">Best Sellers</option>
                   </select>
-                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+                </div>
+
+                <div className="bg-blue-50 rounded-lg px-3 py-2 border border-blue-200 text-center">
+                  <p className="text-xs text-gray-600">Total</p>
+                  <p className="text-lg font-bold text-blue-700">{menuItems.length}</p>
                 </div>
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-2xl p-4">
-                  <p className="text-sm text-gray-600 mb-1 font-semibold">Total Items</p>
-                  <p className="text-2xl font-bold text-blue-700">{menuItems.length}</p>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-green-50 rounded-lg p-2 border border-green-200 text-center">
+                  <p className="text-xs text-gray-600 mb-0.5">Available</p>
+                  <p className="text-base font-bold text-green-700">{menuItems.filter(i => i.available).length}</p>
                 </div>
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-4">
-                  <p className="text-sm text-gray-600 mb-1 font-semibold">Available</p>
-                  <p className="text-2xl font-bold text-green-700">
-                    {menuItems.filter(i => i.available).length}
-                  </p>
+                <div className="bg-amber-50 rounded-lg p-2 border border-amber-200 text-center">
+                  <p className="text-xs text-gray-600 mb-0.5">Best Sellers</p>
+                  <p className="text-base font-bold text-amber-700">{menuItems.filter(i => i.mostSell).length}</p>
                 </div>
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-4">
-                  <p className="text-sm text-gray-600 mb-1 font-semibold">Best Sellers</p>
-                  <p className="text-2xl font-bold text-amber-700">
-                    {menuItems.filter(i => i.mostSell).length}
-                  </p>
-                </div>
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-4">
-                  <p className="text-sm text-gray-600 mb-1 font-semibold">Categories</p>
-                  <p className="text-2xl font-bold text-purple-700">{categories.length}</p>
+                <div className="bg-purple-50 rounded-lg p-2 border border-purple-200 text-center">
+                  <p className="text-xs text-gray-600 mb-0.5">Categories</p>
+                  <p className="text-base font-bold text-purple-700">{categories.length}</p>
                 </div>
               </div>
             </div>
@@ -787,15 +838,20 @@ const MenuDashboard = () => {
 
           {/* Menu Items Grid */}
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={`grid gap-3 ${
+              gridColumns === 2 ? 'grid-cols-2 lg:grid-cols-2' :
+              gridColumns === 3 ? 'grid-cols-2 lg:grid-cols-3' :
+              gridColumns === 4 ? 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' :
+              'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
+            }`}>
               {filteredItems.length === 0 ? (
                 <div className="col-span-full">
-                  <div className="bg-white/80 backdrop-blur-lg border-2 border-amber-100 rounded-3xl p-12 text-center shadow-lg">
-                    <div className="bg-gray-100 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-                      <UtensilsCrossed className="w-12 h-12 text-gray-400" />
+                  <div className="bg-white rounded-xl p-8 text-center shadow-md border border-amber-100">
+                    <div className="bg-gray-100 p-4 rounded-full w-16 h-16 mx-auto mb-3 flex items-center justify-center">
+                      <UtensilsCrossed className="w-8 h-8 text-gray-400" />
                     </div>
-                    <p className="text-gray-900 font-bold text-lg mb-2">No menu items found</p>
-                    <p className="text-gray-600 text-sm">Try adjusting your filters or add a new item</p>
+                    <p className="text-gray-600 font-semibold">No menu items found</p>
+                    <p className="text-gray-500 text-sm">Try adjusting filters or add a new item</p>
                   </div>
                 </div>
               ) : (
@@ -804,9 +860,9 @@ const MenuDashboard = () => {
                   return (
                     <div
                       key={item._id}
-                      className="bg-white/80 backdrop-blur-lg border-2 border-amber-100 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl hover:border-amber-300 transition-all group"
+                      className="bg-white rounded-xl overflow-hidden shadow-md border border-amber-100 hover:shadow-lg transition-all group"
                     >
-                      <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                      <div className="relative h-48 lg:h-56 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                         {item.imgURL ? (
                           <img
                             src={item.imgURL}
@@ -819,14 +875,14 @@ const MenuDashboard = () => {
                           </div>
                         )}
                         {item.mostSell && (
-                          <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
-                            <Star className="w-3 h-3" fill="white" />
+                          <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                            <Star className="w-3.5 h-3.5" fill="white" />
                             Best Seller
                           </div>
                         )}
                         {!item.available && (
                           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                            <div className="bg-red-500 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2">
+                            <div className="bg-red-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg">
                               <EyeOff className="w-4 h-4" />
                               Unavailable
                             </div>
@@ -834,35 +890,35 @@ const MenuDashboard = () => {
                         )}
                       </div>
 
-                      <div className="p-5">
+                      <div className="p-4 lg:p-5">
                         <div className="mb-3">
-                          <h3 className="text-lg font-bold text-gray-900 mb-1">{item.name}</h3>
+                          <h3 className="text-base lg:text-lg font-bold text-gray-900 mb-2">{item.name}</h3>
                           {category && (
                             <div className="flex items-center gap-2 mb-2">
-                              <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 px-2 py-1 rounded-lg flex items-center gap-1">
-                                {React.createElement(getIconComponent(category.icon), { className: "w-3 h-3 text-amber-600" })}
+                              <div className="bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg flex items-center gap-1.5">
+                                {React.createElement(getIconComponent(category.icon), { className: "w-4 h-4 text-amber-600" })}
                                 <span className="text-xs font-bold text-amber-700">{category.id}</span>
                               </div>
                             </div>
                           )}
                           {item.description && (
-                            <p className="text-sm text-gray-600 line-clamp-2">{item.description}</p>
+                            <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">{item.description}</p>
                           )}
                         </div>
 
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <IndianRupee className="w-4 h-4 text-amber-600" />
-                            <span className="text-2xl font-bold text-amber-600">₹{item.price}</span>
+                        <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-100">
+                          <div className="flex items-center gap-1.5">
+                            <IndianRupee className="w-5 h-5 text-amber-600" />
+                            <span className="text-xl lg:text-2xl font-bold text-amber-600">₹{item.price}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-gray-600">
+                          <div className="flex items-center gap-1.5 text-gray-600 bg-gray-50 px-2 py-1 rounded-lg">
                             <Clock className="w-4 h-4" />
                             <span className="text-sm font-semibold">{item.preparationTime}m</span>
                           </div>
                         </div>
 
                         {item.tags && item.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-3">
+                          <div className="flex flex-wrap gap-1.5 mb-3">
                             {item.tags.slice(0, 3).map((tag, idx) => (
                               <span
                                 key={idx}
@@ -876,10 +932,10 @@ const MenuDashboard = () => {
 
                         <button
                           onClick={() => toggleAvailability(item._id)}
-                          className={`w-full px-3 py-2 rounded-lg text-sm font-bold mb-3 transition-all ${
+                          className={`w-full px-3 py-2.5 rounded-lg text-sm font-bold mb-3 transition-all ${
                             item.available
-                              ? 'bg-green-100 border-2 border-green-300 text-green-700 hover:bg-green-200'
-                              : 'bg-red-100 border-2 border-red-300 text-red-700 hover:bg-red-200'
+                              ? 'bg-green-100 border border-green-300 text-green-700 hover:bg-green-200'
+                              : 'bg-red-100 border border-red-300 text-red-700 hover:bg-red-200'
                           }`}
                         >
                           {item.available ? (
@@ -898,17 +954,15 @@ const MenuDashboard = () => {
                         <div className="flex gap-2">
                           <button
                             onClick={() => openEditMenuModal(item)}
-                            className="flex-1 px-4 py-2 bg-blue-100 border-2 border-blue-300 text-blue-700 rounded-lg hover:bg-blue-200 transition-all flex items-center justify-center gap-2 font-bold"
+                            className="flex-1 px-3 py-2.5 bg-blue-50 border border-blue-200 text-blue-600 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-100 transition-all"
                           >
-                            <Edit className="w-4 h-4" />
-                            Edit
+                            <Edit className="w-4 h-4" />Edit
                           </button>
                           <button
                             onClick={() => handleDelete(item._id, 'menu')}
-                            className="flex-1 px-4 py-2 bg-red-100 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-200 transition-all flex items-center justify-center gap-2 font-bold"
+                            className="flex-1 px-3 py-2.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-red-100 transition-all"
                           >
-                            <Trash2 className="w-4 h-4" />
-                            Delete
+                            <Trash2 className="w-4 h-4" />Delete
                           </button>
                         </div>
                       </div>
@@ -924,47 +978,118 @@ const MenuDashboard = () => {
       {/* Categories Tab */}
       {activeTab === 'categories' && (
         <>
-          <div className="max-w-7xl mx-auto mb-6">
-            <div className="bg-white/80 backdrop-blur-lg rounded-3xl p-6 shadow-lg border-2 border-amber-100">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Categories</h2>
-                <button
-                  onClick={openAddCategoryModal}
-                  className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:from-orange-600 hover:to-rose-600 hover:scale-105 transition-all"
-                >
-                  <Plus className="w-5 h-5" />
-                  Add Category
-                </button>
+          <div className="max-w-7xl mx-auto mb-3">
+            <div className="bg-white rounded-xl p-3 shadow-md border border-amber-100">
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-base font-bold text-gray-900">Categories</h2>
+                <div className="flex items-center gap-2">
+                  {/* Grid View Selector */}
+                  <div className="hidden lg:flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+                    <button
+                      onClick={() => setGridColumns(2)}
+                      className={`p-1.5 rounded transition-all ${gridColumns === 2 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                      title="2 columns"
+                    >
+                      <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="3" width="8" height="8" strokeWidth="2" />
+                        <rect x="13" y="3" width="8" height="8" strokeWidth="2" />
+                        <rect x="3" y="13" width="8" height="8" strokeWidth="2" />
+                        <rect x="13" y="13" width="8" height="8" strokeWidth="2" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setGridColumns(3)}
+                      className={`p-1.5 rounded transition-all ${gridColumns === 3 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                      title="3 columns"
+                    >
+                      <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="3" width="5.5" height="5.5" strokeWidth="2" />
+                        <rect x="9.25" y="3" width="5.5" height="5.5" strokeWidth="2" />
+                        <rect x="16.5" y="3" width="5.5" height="5.5" strokeWidth="2" />
+                        <rect x="2" y="10" width="5.5" height="5.5" strokeWidth="2" />
+                        <rect x="9.25" y="10" width="5.5" height="5.5" strokeWidth="2" />
+                        <rect x="16.5" y="10" width="5.5" height="5.5" strokeWidth="2" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setGridColumns(4)}
+                      className={`p-1.5 rounded transition-all ${gridColumns === 4 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                      title="4 columns"
+                    >
+                      <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="3" width="4" height="4" strokeWidth="2" />
+                        <rect x="8" y="3" width="4" height="4" strokeWidth="2" />
+                        <rect x="14" y="3" width="4" height="4" strokeWidth="2" />
+                        <rect x="20" y="3" width="2" height="4" strokeWidth="2" />
+                        <rect x="2" y="9" width="4" height="4" strokeWidth="2" />
+                        <rect x="8" y="9" width="4" height="4" strokeWidth="2" />
+                        <rect x="14" y="9" width="4" height="4" strokeWidth="2" />
+                        <rect x="20" y="9" width="2" height="4" strokeWidth="2" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setGridColumns(5)}
+                      className={`p-1.5 rounded transition-all ${gridColumns === 5 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                      title="5 columns"
+                    >
+                      <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="4" width="3" height="3" strokeWidth="2" />
+                        <rect x="6.5" y="4" width="3" height="3" strokeWidth="2" />
+                        <rect x="11" y="4" width="3" height="3" strokeWidth="2" />
+                        <rect x="15.5" y="4" width="3" height="3" strokeWidth="2" />
+                        <rect x="20" y="4" width="2" height="3" strokeWidth="2" />
+                        <rect x="2" y="9" width="3" height="3" strokeWidth="2" />
+                        <rect x="6.5" y="9" width="3" height="3" strokeWidth="2" />
+                        <rect x="11" y="9" width="3" height="3" strokeWidth="2" />
+                        <rect x="15.5" y="9" width="3" height="3" strokeWidth="2" />
+                        <rect x="20" y="9" width="2" height="3" strokeWidth="2" />
+                      </svg>
+                    </button>
+                  </div>
+                  <button
+                    onClick={openAddCategoryModal}
+                    className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-3 py-2 rounded-lg font-semibold text-sm flex-shrink-0"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">Add</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="relative mb-4">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search categories..."
                   value={searchTermCategories}
                   onChange={(e) => setSearchTermCategories(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 text-gray-900 placeholder-gray-500 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                  className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500"
                 />
               </div>
 
-              <p className="text-gray-700 font-semibold">
-                <span className="text-amber-600">{filteredCategories.length}</span> categories found
-              </p>
+              <div className="bg-amber-50 rounded-lg px-3 py-2 border border-amber-200 text-center">
+                <p className="text-xs text-gray-600">Total Categories</p>
+                <p className="text-lg font-bold text-amber-700">{filteredCategories.length}</p>
+              </div>
             </div>
           </div>
 
           {/* Categories Grid */}
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={`grid gap-3 ${
+              gridColumns === 2 ? 'grid-cols-2 lg:grid-cols-2' :
+              gridColumns === 3 ? 'grid-cols-2 lg:grid-cols-3' :
+              gridColumns === 4 ? 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' :
+              'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
+            }`}>
               {filteredCategories.length === 0 ? (
                 <div className="col-span-full">
-                  <div className="bg-white/80 backdrop-blur-lg border-2 border-amber-100 rounded-3xl p-12 text-center shadow-lg">
-                    <div className="bg-gray-100 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-                      <Folder className="w-12 h-12 text-gray-400" />
+                  <div className="bg-white rounded-xl p-8 text-center shadow-md border border-amber-100">
+                    <div className="bg-gray-100 p-4 rounded-full w-16 h-16 mx-auto mb-3 flex items-center justify-center">
+                      <Folder className="w-8 h-8 text-gray-400" />
                     </div>
-                    <p className="text-gray-900 font-bold text-lg mb-2">No categories found</p>
-                    <p className="text-gray-600 text-sm">Add your first category to get started</p>
+                    <p className="text-gray-600 font-semibold">No categories found</p>
+                    <p className="text-gray-500 text-sm">Add your first category to get started</p>
                   </div>
                 </div>
               ) : (
@@ -973,9 +1098,9 @@ const MenuDashboard = () => {
                   return (
                     <div
                       key={category._id}
-                      className="bg-white/80 backdrop-blur-lg border-2 border-amber-100 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl hover:border-amber-300 transition-all group"
+                      className="bg-white rounded-xl overflow-hidden shadow-md border border-amber-100 hover:shadow-lg transition-all group"
                     >
-                      <div className="relative h-40 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                      <div className="relative h-40 lg:h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                         {category.imgURL ? (
                           <img
                             src={category.imgURL}
@@ -987,40 +1112,33 @@ const MenuDashboard = () => {
                             <IconComponent className="w-20 h-20 text-gray-400" />
                           </div>
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                       </div>
 
-                      <div className="p-5">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-3 rounded-xl shadow-lg">
-                              <IconComponent className="w-6 h-6 text-white" />
-                            </div>
-                            <div>
-                              <h3 className="text-lg font-bold text-gray-900">{category.id}</h3>
-                            </div>
+                      <div className="p-4 lg:p-5">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-3 rounded-xl shadow-lg flex-shrink-0">
+                            <IconComponent className="w-5 h-5 text-white" />
                           </div>
-                         
+                          <h3 className="text-base lg:text-lg font-bold text-gray-900">{category.id}</h3>
                         </div>
 
                         {category.description && (
-                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{category.description}</p>
+                          <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">{category.description}</p>
                         )}
 
-                        <div className="flex gap-2 pt-4 border-t-2 border-gray-200">
+                        <div className="flex gap-2 pt-4 border-t border-gray-100">
                           <button
                             onClick={() => openEditCategoryModal(category)}
-                            className="flex-1 px-4 py-2 bg-blue-100 border-2 border-blue-300 text-blue-700 rounded-lg hover:bg-blue-200 transition-all flex items-center justify-center gap-2 font-bold"
+                            className="flex-1 px-3 py-2.5 bg-blue-50 border border-blue-200 text-blue-600 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-100 transition-all"
                           >
-                            <Edit className="w-4 h-4" />
-                            Edit
+                            <Edit className="w-4 h-4" />Edit
                           </button>
                           <button
                             onClick={() => handleDelete(category._id, 'category')}
-                            className="flex-1 px-4 py-2 bg-red-100 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-200 transition-all flex items-center justify-center gap-2 font-bold"
+                            className="flex-1 px-3 py-2.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-red-100 transition-all"
                           >
-                            <Trash2 className="w-4 h-4" />
-                            Delete
+                            <Trash2 className="w-4 h-4" />Delete
                           </button>
                         </div>
                       </div>
@@ -1035,42 +1153,34 @@ const MenuDashboard = () => {
 
       {/* Modal for Menu Items */}
       {isModalOpen && modalType === 'menu' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl my-8 animate-scale-in">
-            <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-6 rounded-t-3xl flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-2 rounded-xl">
-                  {isEditMode ? <Edit className="w-6 h-6 text-white" /> : <Plus className="w-6 h-6 text-white" />}
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-xl sm:rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+              <div className="flex items-center gap-2">
+                <div className="bg-white/20 p-1.5 rounded-lg">
+                  {isEditMode ? <Edit className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
                 </div>
-                <h2 className="text-2xl font-bold text-white">
-                  {isEditMode ? 'Edit Menu Item' : 'Add New Menu Item'}
-                </h2>
+                <h2 className="text-lg font-bold text-white">{isEditMode ? 'Edit Item' : 'Add Item'}</h2>
               </div>
-              <button onClick={closeModal} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
-                <X className="w-6 h-6 text-white" />
+              <button onClick={closeModal} className="p-1.5 hover:bg-white/20 rounded-lg">
+                <X className="w-5 h-5 text-white" />
               </button>
             </div>
 
-            <form onSubmit={handleMenuSubmit} className="p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={handleMenuSubmit} className="p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Image Upload */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Item Image
-                  </label>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Item Image</label>
                   <div className="relative">
                     {menuFormData.imgURL ? (
-                      <div className="relative h-80 rounded-xl overflow-hidden border-2 border-gray-300 group bg-gray-50">
-                        <img
-                          src={menuFormData.imgURL}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
+                      <div className="relative h-48 rounded-lg overflow-hidden border border-gray-300 group bg-gray-50">
+                        <img src={menuFormData.imgURL} alt="Preview" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="bg-white/90 text-gray-900 px-4 py-2 rounded-lg font-semibold flex items-center gap-2"
+                            className="bg-white text-gray-900 px-3 py-2 rounded-lg font-semibold flex items-center gap-2 text-sm"
                           >
                             <Upload className="w-4 h-4" />
                             Change Image
@@ -1081,11 +1191,11 @@ const MenuDashboard = () => {
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors flex flex-col items-center justify-center gap-2"
+                        className="w-full h-40 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors flex flex-col items-center justify-center gap-2"
                       >
-                        <Upload className="w-8 h-8 text-gray-400" />
-                        <span className="text-gray-600 font-semibold">Click to upload image</span>
-                        <span className="text-gray-500 text-sm">PNG, JPG up to 5MB</span>
+                        <Upload className="w-6 h-6 text-gray-400" />
+                        <span className="text-gray-600 font-semibold text-sm">Click to upload</span>
+                        <span className="text-gray-500 text-xs">PNG, JPG up to 5MB</span>
                       </button>
                     )}
                     <input
@@ -1096,20 +1206,18 @@ const MenuDashboard = () => {
                       className="hidden"
                     />
                     {isUploading && (
-                      <div className="absolute inset-0 bg-white/95 rounded-xl flex items-center justify-center">
+                      <div className="absolute inset-0 bg-white/95 rounded-lg flex items-center justify-center">
                         <div className="text-center">
-                          <Loader className="w-8 h-8 text-amber-600 animate-spin mx-auto mb-2" />
-                          <p className="text-gray-900 font-semibold">Uploading... {uploadProgress}%</p>
+                          <Loader className="w-6 h-6 text-amber-600 animate-spin mx-auto mb-2" />
+                          <p className="text-gray-900 font-semibold text-sm">Uploading... {uploadProgress}%</p>
                         </div>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Item Name *
-                  </label>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Item Name *</label>
                   <input
                     type="text"
                     name="name"
@@ -1117,26 +1225,23 @@ const MenuDashboard = () => {
                     onChange={handleMenuInputChange}
                     onBlur={(e) => handleBlur(e, 'menu')}
                     placeholder="Cappuccino"
-                    className={`w-full px-4 py-3 bg-gray-50 border-2 text-gray-900 placeholder-gray-500 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                    className={`w-full px-3 py-2 text-sm bg-gray-50 border rounded-lg focus:outline-none focus:ring-1 ${
                       errors.name && touched.name
                         ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
                         : 'border-gray-200 focus:border-amber-500 focus:ring-amber-200'
                     }`}
                   />
                   {errors.name && touched.name && (
-                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1 font-semibold">
-                      <AlertCircle className="w-4 h-4" />
-                      {errors.name}
+                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />{errors.name}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Price (₹) *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Price (₹) *</label>
                   <div className="relative">
-                    <IndianRupee className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                    <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
                       type="number"
                       name="price"
@@ -1146,7 +1251,7 @@ const MenuDashboard = () => {
                       placeholder="150"
                       min="0"
                       step="0.01"
-                      className={`w-full pl-12 pr-4 py-3 bg-gray-50 border-2 text-gray-900 placeholder-gray-500 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                      className={`w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border rounded-lg focus:outline-none focus:ring-1 ${
                         errors.price && touched.price
                           ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
                           : 'border-gray-200 focus:border-amber-500 focus:ring-amber-200'
@@ -1154,23 +1259,20 @@ const MenuDashboard = () => {
                     />
                   </div>
                   {errors.price && touched.price && (
-                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1 font-semibold">
-                      <AlertCircle className="w-4 h-4" />
-                      {errors.price}
+                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />{errors.price}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Category *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Category *</label>
                   <select
                     name="category"
                     value={menuFormData.category}
                     onChange={handleMenuInputChange}
                     onBlur={(e) => handleBlur(e, 'menu')}
-                    className={`w-full px-4 py-3 bg-gray-50 border-2 text-gray-900 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                    className={`w-full px-3 py-2 text-sm bg-gray-50 border rounded-lg focus:outline-none focus:ring-1 ${
                       errors.category && touched.category
                         ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
                         : 'border-gray-200 focus:border-amber-500 focus:ring-amber-200'
@@ -1182,124 +1284,101 @@ const MenuDashboard = () => {
                     ))}
                   </select>
                   {errors.category && touched.category && (
-                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1 font-semibold">
-                      <AlertCircle className="w-4 h-4" />
-                      {errors.category}
+                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />{errors.category}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Preparation Time (minutes)
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Prep Time (min)</label>
                   <div className="relative">
-                    <Clock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
                       type="number"
                       name="preparationTime"
                       value={menuFormData.preparationTime}
                       onChange={handleMenuInputChange}
                       min="1"
-                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 text-gray-900 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                      className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
                     />
                   </div>
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    name="description"
-                    value={menuFormData.description}
-                    onChange={handleMenuInputChange}
-                    placeholder="Rich espresso with steamed milk..."
-                    rows={3}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 text-gray-900 placeholder-gray-500 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all resize-none"
-                  />
-                </div>
-
-                {/* <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Tags (comma-separated)
-                  </label>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Tags</label>
                   <div className="relative">
-                    <Tag className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                    <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
                       type="text"
                       name="tags"
                       value={menuFormData.tags}
                       onChange={handleMenuInputChange}
                       placeholder="hot, coffee, popular"
-                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 text-gray-900 placeholder-gray-500 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                      className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
                     />
                   </div>
-                </div> */}
+                </div>
 
-                <div className="md:col-span-2 flex gap-6">
-                  <label className="flex items-center gap-3 cursor-pointer group">
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+                  <textarea
+                    name="description"
+                    value={menuFormData.description}
+                    onChange={handleMenuInputChange}
+                    placeholder="Rich espresso with steamed milk..."
+                    rows={2}
+                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200 resize-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2 flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       name="available"
                       checked={menuFormData.available}
                       onChange={handleMenuInputChange}
-                      className="w-5 h-5 text-amber-600 bg-gray-100 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
+                      className="w-4 h-4 text-amber-600 bg-gray-100 border-gray-300 rounded focus:ring-amber-500 focus:ring-1"
                     />
-                    <span className="text-sm font-bold text-gray-700 group-hover:text-amber-600 transition-colors">
-                      Available
-                    </span>
+                    <span className="text-sm font-semibold text-gray-700">Available</span>
                   </label>
 
-                  <label className="flex items-center gap-3 cursor-pointer group">
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       name="mostSell"
                       checked={menuFormData.mostSell}
                       onChange={handleMenuInputChange}
-                      className="w-5 h-5 text-amber-600 bg-gray-100 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
+                      className="w-4 h-4 text-amber-600 bg-gray-100 border-gray-300 rounded focus:ring-amber-500 focus:ring-1"
                     />
-                    <span className="text-sm font-bold text-gray-700 group-hover:text-amber-600 transition-colors">
-                      Best Seller
-                    </span>
+                    <span className="text-sm font-semibold text-gray-700">Best Seller</span>
                   </label>
 
-                  <label className="flex items-center gap-3 cursor-pointer group">
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       name="isActive"
                       checked={menuFormData.isActive}
                       onChange={handleMenuInputChange}
-                      className="w-5 h-5 text-amber-600 bg-gray-100 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
+                      className="w-4 h-4 text-amber-600 bg-gray-100 border-gray-300 rounded focus:ring-amber-500 focus:ring-1"
                     />
-                    <span className="text-sm font-bold text-gray-700 group-hover:text-amber-600 transition-colors">
-                      Active
-                    </span>
+                    <span className="text-sm font-semibold text-gray-700">Active</span>
                   </label>
                 </div>
               </div>
 
-              <div className="flex gap-4 mt-8">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all"
-                >
+              <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100 sticky bottom-0 bg-white">
+                <button type="button" onClick={closeModal} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 text-sm">
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-rose-600 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-1.5"
                 >
-                  {isLoading ? (
-                    <Loader className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <Save className="w-5 h-5" />
-                      {isEditMode ? 'Update Item' : 'Create Item'}
-                    </>
-                  )}
+                  {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {isEditMode ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>
@@ -1309,42 +1388,34 @@ const MenuDashboard = () => {
 
       {/* Modal for Categories */}
       {isModalOpen && modalType === 'category' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl my-8 animate-scale-in">
-            <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-6 rounded-t-3xl flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-2 rounded-xl">
-                  {isEditMode ? <Edit className="w-6 h-6 text-white" /> : <Plus className="w-6 h-6 text-white" />}
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-xl sm:rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+              <div className="flex items-center gap-2">
+                <div className="bg-white/20 p-1.5 rounded-lg">
+                  {isEditMode ? <Edit className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
                 </div>
-                <h2 className="text-2xl font-bold text-white">
-                  {isEditMode ? 'Edit Category' : 'Add New Category'}
-                </h2>
+                <h2 className="text-lg font-bold text-white">{isEditMode ? 'Edit Category' : 'Add Category'}</h2>
               </div>
-              <button onClick={closeModal} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
-                <X className="w-6 h-6 text-white" />
+              <button onClick={closeModal} className="p-1.5 hover:bg-white/20 rounded-lg">
+                <X className="w-5 h-5 text-white" />
               </button>
             </div>
 
-            <form onSubmit={handleCategorySubmit} className="p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={handleCategorySubmit} className="p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Image Upload */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Category Image
-                  </label>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Category Image</label>
                   <div className="relative">
                     {categoryFormData.imgURL ? (
-                      <div className="relative h-80 rounded-xl overflow-hidden border-2 border-gray-300 group bg-gray-50">
-                        <img
-                          src={categoryFormData.imgURL}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
+                      <div className="relative h-48 rounded-lg overflow-hidden border border-gray-300 group bg-gray-50">
+                        <img src={categoryFormData.imgURL} alt="Preview" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="bg-white/90 text-gray-900 px-4 py-2 rounded-lg font-semibold flex items-center gap-2"
+                            className="bg-white text-gray-900 px-3 py-2 rounded-lg font-semibold flex items-center gap-2 text-sm"
                           >
                             <Upload className="w-4 h-4" />
                             Change Image
@@ -1355,11 +1426,11 @@ const MenuDashboard = () => {
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors flex flex-col items-center justify-center gap-2"
+                        className="w-full h-40 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors flex flex-col items-center justify-center gap-2"
                       >
-                        <Upload className="w-8 h-8 text-gray-400" />
-                        <span className="text-gray-600 font-semibold">Click to upload image</span>
-                        <span className="text-gray-500 text-sm">PNG, JPG up to 5MB</span>
+                        <Upload className="w-6 h-6 text-gray-400" />
+                        <span className="text-gray-600 font-semibold text-sm">Click to upload</span>
+                        <span className="text-gray-500 text-xs">PNG, JPG up to 5MB</span>
                       </button>
                     )}
                     <input
@@ -1370,10 +1441,10 @@ const MenuDashboard = () => {
                       className="hidden"
                     />
                     {isUploading && (
-                      <div className="absolute inset-0 bg-white/95 rounded-xl flex items-center justify-center">
+                      <div className="absolute inset-0 bg-white/95 rounded-lg flex items-center justify-center">
                         <div className="text-center">
-                          <Loader className="w-8 h-8 text-amber-600 animate-spin mx-auto mb-2" />
-                          <p className="text-gray-900 font-semibold">Uploading... {uploadProgress}%</p>
+                          <Loader className="w-6 h-6 text-amber-600 animate-spin mx-auto mb-2" />
+                          <p className="text-gray-900 font-semibold text-sm">Uploading... {uploadProgress}%</p>
                         </div>
                       </div>
                     )}
@@ -1381,9 +1452,7 @@ const MenuDashboard = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Category ID *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Category ID *</label>
                   <input
                     type="text"
                     name="id"
@@ -1392,29 +1461,26 @@ const MenuDashboard = () => {
                     onBlur={(e) => handleBlur(e, 'category')}
                     placeholder="hot-beverages"
                     disabled={isEditMode}
-                    className={`w-full px-4 py-3 bg-gray-50 border-2 text-gray-900 placeholder-gray-500 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                    className={`w-full px-3 py-2 text-sm bg-gray-50 border rounded-lg focus:outline-none focus:ring-1 ${
                       errors.id && touched.id
                         ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
                         : 'border-gray-200 focus:border-amber-500 focus:ring-amber-200'
                     } ${isEditMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                   />
                   {errors.id && touched.id && (
-                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1 font-semibold">
-                      <AlertCircle className="w-4 h-4" />
-                      {errors.id}
+                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />{errors.id}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Icon *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Icon *</label>
                   <select
                     name="icon"
                     value={categoryFormData.icon}
                     onChange={handleCategoryInputChange}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 text-gray-900 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
                   >
                     {iconOptions.map(option => (
                       <option key={option.value} value={option.value}>
@@ -1424,46 +1490,30 @@ const MenuDashboard = () => {
                   </select>
                 </div>
 
-               
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Description
-                  </label>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
                   <textarea
                     name="description"
                     value={categoryFormData.description}
                     onChange={handleCategoryInputChange}
                     placeholder="Category description..."
-                    rows={3}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 text-gray-900 placeholder-gray-500 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all resize-none"
+                    rows={2}
+                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200 resize-none"
                   />
                 </div>
-
-
               </div>
 
-              <div className="flex gap-4 mt-8">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all"
-                >
+              <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100 sticky bottom-0 bg-white">
+                <button type="button" onClick={closeModal} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 text-sm">
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-rose-600 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-1.5"
                 >
-                  {isLoading ? (
-                    <Loader className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <Save className="w-5 h-5" />
-                      {isEditMode ? 'Update Category' : 'Create Category'}
-                    </>
-                  )}
+                  {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {isEditMode ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>
@@ -1472,16 +1522,11 @@ const MenuDashboard = () => {
       )}
 
       <style jsx>{`
-        @keyframes slide-in-right {
+        @keyframes slide-in {
           from { transform: translateX(100%); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
         }
-        @keyframes scale-in {
-          from { transform: scale(0.95); opacity: 0; }
-          to { transform: scale(1); opacity: 1; }
-        }
-        .animate-slide-in-right { animation: slide-in-right 0.3s ease-out; }
-        .animate-scale-in { animation: scale-in 0.3s ease-out; }
+        .animate-slide-in { animation: slide-in 0.3s; }
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
