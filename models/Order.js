@@ -104,8 +104,7 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for faster queries
-orderSchema.index({ orderId: 1 });
+// Index for faster queries (orderId has unique: true so no need for explicit index)
 orderSchema.index({ session: 1 });
 orderSchema.index({ table: 1 });
 orderSchema.index({ orderStatus: 1 });

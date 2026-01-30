@@ -80,8 +80,7 @@ const sessionSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for faster queries
-sessionSchema.index({ sessionId: 1 });
+// Index for faster queries (sessionId has unique: true so no need for explicit index)
 sessionSchema.index({ table: 1 });
 sessionSchema.index({ status: 1 });
 sessionSchema.index({ createdAt: -1 });

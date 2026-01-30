@@ -72,17 +72,6 @@ export async function PUT(req, { params }) {
     // Recalculate order amount
     order.orderAmount = order.items.reduce((sum, item) => sum + item.subtotal, 0);
 
-    // Add to status history
-    if (!order.statusHistory) {
-      order.statusHistory = [];
-    }
-    order.statusHistory.push({
-      status: 'modified',
-      timestamp: new Date(),
-      updatedBy: currentUser._id,
-      note: `Updated ${order.items[itemIndex].name} quantity from ${oldQuantity} to ${quantity}`
-    });
-
     await order.save();
 
     // Update session total if order belongs to a session
@@ -167,24 +156,6 @@ export async function DELETE(req, { params }) {
 
     // Recalculate order amount
     order.orderAmount = order.items.reduce((sum, item) => sum + item.subtotal, 0);
-
-    // Recalculate estimated time
-    if (order.items.length > 0) {
-      order.estimatedTime = Math.max(
-        ...order.items.map(item => item.menuItem?.preparationTime || 15)
-      );
-    }
-
-    // Add to status history
-    if (!order.statusHistory) {
-      order.statusHistory = [];
-    }
-    order.statusHistory.push({
-      status: 'modified',
-      timestamp: new Date(),
-      updatedBy: currentUser._id,
-      note: `Removed ${deletedItem.quantity}x ${deletedItem.name}`
-    });
 
     await order.save();
 
