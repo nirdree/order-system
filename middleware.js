@@ -20,6 +20,9 @@ function validateTokenFormat(token) {
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
+  // Public routes (no auth required)
+  const publicRoutes = ['/menu'];
+
   // Protected routes by role
   const ownerRoutes = ['/owner'];
   const managerRoutes = ['/manager'];
@@ -28,6 +31,11 @@ export async function middleware(request) {
   const authRoutes = ['/login', '/signup'];
 
   const token = request.cookies.get('authToken')?.value;
+
+  // Allow public routes without authentication
+  if (publicRoutes.some(route => pathname.startsWith(route))) {
+    return NextResponse.next();
+  }
 
   // If route is protected ensure token is present and valid
   if (protectedRoutes.some(route => pathname.startsWith(route))) {
