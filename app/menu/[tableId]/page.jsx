@@ -67,16 +67,11 @@ const OrderManagementDashboard = () => {
   const loadSession = async () => {
     try {
       setIsLoading(true);
-      const response = await sessionsAPI.getAllSessions({ 
-        tableId: selectedTable._id,
-        status: 'active'
-      });
+      // Use public endpoint to fetch session by table ID (no auth required)
+      const response = await sessionsAPI.getSessionByTableId(selectedTable._id);
       
-      if (response.success && response.data.length > 0) {
-        const sessionResponse = await sessionsAPI.getSession(response.data[0]._id);
-        if (sessionResponse.success) {
-          setSession(sessionResponse.data);
-        }
+      if (response.success) {
+        setSession(response.data);
       }
     } catch (error) {
       console.error('Error loading session:', error);
@@ -94,7 +89,7 @@ const OrderManagementDashboard = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setCategories([{ id: 'all', icon: 'list', imgURL: '', description: 'All Items' }, ...(data.data || [])]);
+          setCategories([{ _id: 'all', id: 'all', icon: 'list', imgURL: '', description: 'All Items' }, ...(data.data || [])]);
         }
       }
     } catch (error) {
