@@ -8,8 +8,8 @@ const LoginPage = () => {
     const { setUser } = useUser();
     const router = useRouter();
   const [formData, setFormData] = useState({
-    email: 'owner@cafe.com',
-    password: 'password123'
+    email: '',
+    password: ''
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -123,7 +123,8 @@ const LoginPage = () => {
 
       // Check for API errors
       if (data.error) {
-        throw new Error(data.error.message || 'Login failed. Please try again.');
+        console.log('Login failed:', data.error);
+        throw new Error(data?.error?.message || data?.error || data?.message || 'Login failed. Please try again......');
       }
 
       if (!data.success ) {
