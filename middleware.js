@@ -67,7 +67,7 @@ export async function middleware(request) {
           return NextResponse.redirect(new URL('/manager/dashboard', request.url));
         }
         if (payload.role === 'staff') {
-          return NextResponse.redirect(new URL('/staff/dashboard', request.url));
+          return NextResponse.redirect(new URL('/staff/orders', request.url));
         }
         const response = NextResponse.redirect(new URL('/login', request.url));
         response.cookies.delete('authToken');
@@ -81,7 +81,7 @@ export async function middleware(request) {
       if (payload.role !== 'manager' && payload.role !== 'owner') {
         // Redirect to respective dashboard
         if (payload.role === 'staff') {
-          return NextResponse.redirect(new URL('/staff/dashboard', request.url));
+          return NextResponse.redirect(new URL('/staff/orders', request.url));
         }
         const response = NextResponse.redirect(new URL('/login', request.url));
         response.cookies.delete('authToken');
@@ -113,7 +113,7 @@ export async function middleware(request) {
           return NextResponse.redirect(new URL('/manager/dashboard', request.url));
         }
         if (payload.role === 'staff') {
-          return NextResponse.redirect(new URL('/staff/dashboard', request.url));
+          return NextResponse.redirect(new URL('/staff/orders', request.url));
         }
       }
     }

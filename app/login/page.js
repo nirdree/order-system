@@ -143,7 +143,7 @@ const LoginPage = () => {
         if (data.data.user.role === 'owner') {
           router.push('/owner/dashboard');
         } else if (data.data.user.role === 'staff') {
-          router.push('/staff/dashboard');
+          router.push('/staff/orders');
         } else if (data.data.user.role === 'manager') {
           router.push('/manager/dashboard');
         } else {

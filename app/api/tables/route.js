@@ -16,10 +16,7 @@ export async function GET(req) {
       return errorResponse('Invalid user role', 403);
     }
 
-    // Only owner and manager can view tables
-    if (currentUser.role === 'staff') {
-      return errorResponse('You do not have access', 403);
-    }
+
 
     const tables = await Table.find({}).sort({ floorNumber: 1, tableNumber: 1 });
 
@@ -46,10 +43,7 @@ export async function POST(req) {
       return errorResponse('Invalid user role', 403);
     }
 
-    // Only owner and manager can create tables
-    if (currentUser.role === 'staff') {
-      return errorResponse('You do not have access to create tables', 403);
-    }
+
 
     const body = await req.json();
     const {

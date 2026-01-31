@@ -175,11 +175,9 @@ const OrderDetailModal = ({ order, isOpen, onClose, onStatusChange, onCancel }) 
                 disabled={isUpdating || order.orderStatus === 'cancelled' || order.orderStatus === 'completed'}
                 className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value="pending">Pending</option>
+    <option value="pending">Pending</option>
                 <option value="preparing">Preparing</option>
-                <option value="ready">Ready</option>
-                <option value="served">Served</option>
-                <option value="completed">Completed</option>
+                <option value="served">Served</option>  
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
@@ -638,11 +636,9 @@ export default function OrdersPage() {
                 className="w-full pl-8 md:pl-9 pr-8 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer"
               >
                 <option value="all">All Status</option>
-                <option value="pending">Pending</option>
+    <option value="pending">Pending</option>
                 <option value="preparing">Preparing</option>
-                <option value="ready">Ready</option>
-                <option value="served">Served</option>
-                <option value="completed">Completed</option>
+                <option value="served">Served</option>  
                 <option value="cancelled">Cancelled</option>
               </select>
               <ChevronDown className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 pointer-events-none" />
