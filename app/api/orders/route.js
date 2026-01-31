@@ -175,10 +175,11 @@ export async function POST(req) {
         specialInstructions: item.specialInstructions || ''
       });
     }
-
+    const orderIdNext = await Order.countDocuments().then(count => count + 1);
     // Create order
     const order = await Order.create({
       session: session?._id || null,
+      orderId: `Order ID-${orderIdNext}`,
       table: table || null,
       orderType,
       placedBy: 'staff',

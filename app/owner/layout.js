@@ -1,17 +1,3 @@
-// export const metadata = {
-//   title: 'Owner Dashboard | Cafe Management',
-//   description: 'Owner Dashboard for Cafe Management System',
-// };
-
-// export default function OwnerLayout({ children }) {
-//   return (
-//     <div>
-//       {children}
-//     </div>
-//   );
-// }
-
-
 'use client';
 
 import { useState } from 'react';
@@ -22,14 +8,18 @@ import {
   Receipt,
   LayoutDashboard,
   Menu,
-  X,UtensilsCrossed
+  X,
+  UtensilsCrossed,
+  LogOut,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-
+import { usePathname, useRouter } from 'next/navigation';
+import { useUser } from '@/context/UserContext';
 export default function OwnerLayout({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const { user, loading, logout } = useUser();
 
   const menuItems = [
     { name: 'Dashboard', href: '/owner/dashboard', icon: LayoutDashboard },
@@ -40,13 +30,22 @@ export default function OwnerLayout({ children }) {
     { name: 'User Management', href: '/owner/users', icon: Users },
   ];
 
+  const handleLogout = async() => {
+    
+    logout();
+    router.push('/login');
+  };
+
   return (
     <div className="flex min-h-screen bg-amber-50">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 bg-white shadow-lg flex-col">
+      <aside className="hidden md:flex w-64 bg-white shadow-lg flex-col fixed h-full left-0 top-0">
         <div className="p-6 text-2xl font-bold text-amber-900">
           Cafe Owner
         </div>
+        <h1 className="px-6 mb-6 text-sm font-medium">
+          Welcome, {user?.name}
+        </h1>
 
         <nav className="px-4 space-y-2">
           {menuItems.map((item) => {
@@ -70,6 +69,17 @@ export default function OwnerLayout({ children }) {
             );
           })}
         </nav>
+
+        {/* Logout (Bottom) */}
+        <div className="mt-auto p-4 border-t">
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition"
+          >
+            <LogOut size={20} />
+            Logout
+          </button>
+        </div>
       </aside>
 
       {/* Mobile Drawer */}
@@ -82,7 +92,7 @@ export default function OwnerLayout({ children }) {
           />
 
           {/* Drawer */}
-          <aside className="absolute left-0 top-0 h-full w-64 bg-white shadow-lg z-50 p-4">
+          <aside className="absolute left-0 top-0 h-full w-64 bg-white shadow-lg z-50 flex flex-col p-4">
             <div className="flex items-center justify-between mb-6">
               <span className="text-lg font-bold text-amber-900">
                 Cafe Owner
@@ -115,12 +125,26 @@ export default function OwnerLayout({ children }) {
                 );
               })}
             </nav>
+
+            {/* Logout (Bottom) */}
+            <div className="mt-auto pt-4 border-t">
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  handleLogout();
+                }}
+                className="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition"
+              >
+                <LogOut size={20} />
+                Logout
+              </button>
+            </div>
           </aside>
         </div>
       )}
 
       {/* Main Content */}
-      <main className="flex-1 w-full">
+      <main className="flex-1 w-full md:ml-64">
         {/* Mobile Top Bar */}
         <div className="md:hidden flex items-center gap-3 p-4 bg-white shadow">
           <button onClick={() => setOpen(true)}>
