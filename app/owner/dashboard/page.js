@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
-import { LogOut, BarChart3, Users, TrendingUp } from 'lucide-react';
+import { LogOut, BarChart3, Users, TrendingUp, ShoppingBag, RefreshCw } from 'lucide-react';
 
 export default function OwnerDashboard() {
   const { user, loading, logout } = useUser();
@@ -25,21 +25,29 @@ export default function OwnerDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
-      <nav className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-amber-900">Owner Dashboard</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-gray-700">{user?.name}</span>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-            >
-              <LogOut size={18} />
-              Logout
-            </button>
+      
+        <div className="bg-white rounded-xl p-3 md:p-4 shadow-md border border-amber-100">
+          {/* Header */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+              <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2 md:p-2.5 rounded-lg flex-shrink-0">
+                <ShoppingBag className="w-4 h-4 md:w-5 md:h-5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">Orders Management</h1>
+                <p className="text-xs text-gray-600 hidden sm:block">Track and manage all orders</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                className="p-2 md:p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+              >
+                <RefreshCw className={`w-4 h-4 md:w-5 md:h-5 text-gray-600 `} />
+              </button>
+            </div>
           </div>
         </div>
-      </nav>
+      
 
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
