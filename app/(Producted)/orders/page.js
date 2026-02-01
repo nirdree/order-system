@@ -30,6 +30,7 @@ import {
   Edit2,
   Trash2
 } from 'lucide-react';
+import PageHeader from '@/components/PageHeader';
 
 // ============= ORDER DETAIL MODAL COMPONENT =============
 const OrderDetailModal = ({ order, isOpen, onClose, onStatusChange, onCancel }) => {
@@ -423,32 +424,14 @@ export default function OrdersPage() {
 
       {/* Header */}
 
-      <div className="max-w-7xl mx-auto mb-3 md:mb-4">
-        <div className="bg-white rounded-xl p-3 md:p-4 shadow-md border border-amber-100">
-          <div className="flex items-center justify-between gap-3">
-
-            <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-              <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2 md:p-2.5 rounded-lg flex-shrink-0">
-                <ShoppingBag className="w-4 h-4 md:w-5 md:h-5 text-white" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">Orders Management</h1>
-                <p className="text-xs text-gray-600 hidden sm:block">Track and manage all orders</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={loadOrders}
-                disabled={isLoading}
-                className="p-2 md:p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition"
-              >
-                <RefreshCw className={`w-4 h-4 md:w-5 md:h-5 text-gray-600 ${isLoading ? 'animate-spin' : ''}`} />
-              </button>
-
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        icon={ShoppingBag}
+        title="Orders Management"
+        subtitle="Track and manage all orders"
+        showRefreshButton={true}
+        onRefreshClick={loadOrders}
+        isRefreshing={isLoading}
+      />
 
       {/* Stats Cards */}
       <div className="max-w-7xl mx-auto mb-3 md:mb-5">

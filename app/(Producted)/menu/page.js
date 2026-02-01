@@ -11,6 +11,7 @@ import {
 import { menuItemsAPI, categoriesAPI } from '@/lib/api-client';
 import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
+import PageHeader from '@/components/PageHeader';
 
 // Cloudinary configuration
 const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
@@ -647,25 +648,14 @@ const MenuDashboard = () => {
       )}
 
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-3 md:mb-4">
-        <div className="bg-white rounded-xl p-3 md:p-4 shadow-md border border-amber-100">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-              <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2 md:p-2.5 rounded-lg flex-shrink-0">
-                <LayoutDashboard className="w-4 h-4 md:w-5 md:h-5 text-white" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">Menu Dashboard</h1>
-                <p className="text-xs text-gray-600 hidden sm:block">Manage menu & categories</p>
-              </div>
-            </div>
-            <button  onClick={activeTab === 'menu'? openAddMenuModal : openAddCategoryModal} className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-3 py-2 rounded-lg font-semibold text-sm flex-shrink-0">
-                          <Plus className="w-4 h-4" />
-                          <span className="hidden sm:inline">Add</span>
-                        </button>
-          </div>
-        </div>
-      </div>
+     <PageHeader
+        icon={LayoutDashboard}
+        title="Menu Dashboard"
+        subtitle="Manage menu & categories"
+        showAddButton={true}
+        addButtonText="Add"
+        onAddClick={activeTab === 'menu' ? openAddMenuModal : openAddCategoryModal}
+      />
 
       {/* Tabs */}
       <div className="max-w-7xl mx-auto mb-3 md:mb-4">

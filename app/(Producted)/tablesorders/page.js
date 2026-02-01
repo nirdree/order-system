@@ -8,6 +8,7 @@ import {
   LayoutGrid, List, EyeOff
 } from 'lucide-react';
 import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI } from '@/lib/api-client';
+import PageHeader from '@/components/PageHeader';
 
 // ============= TABLE DETAIL MODAL COMPONENT =============
 export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
@@ -636,8 +637,8 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
                     </div>
                   ) : ordersViewMode === 'grid' ? (
                     <div className={`grid gap-2 md:gap-3 ${ordersGridColumns === 1 ? 'grid-cols-1' :
-                        ordersGridColumns === 2 ? 'grid-cols-1 lg:grid-cols-2' :
-                          'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+                      ordersGridColumns === 2 ? 'grid-cols-1 lg:grid-cols-2' :
+                        'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
                       }`}>
                       {activeOrders.map((order) => (
                         <div key={order._id} className="bg-white border border-gray-200 rounded-xl p-3 md:p-4">
@@ -654,8 +655,8 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
                                 value={order.orderStatus}
                                 onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
                                 className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border cursor-pointer ${order.orderStatus === 'pending' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                    order.orderStatus === 'preparing' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                      'bg-green-50 text-green-700 border-green-200'
+                                  order.orderStatus === 'preparing' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                    'bg-green-50 text-green-700 border-green-200'
                                   }`}
                               >
                                 <option value="pending">Pending</option>
@@ -792,8 +793,8 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
                                       value={order.orderStatus}
                                       onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
                                       className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border cursor-pointer ${order.orderStatus === 'pending' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                          order.orderStatus === 'preparing' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                            'bg-green-50 text-green-700 border-green-200'
+                                        order.orderStatus === 'preparing' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                          'bg-green-50 text-green-700 border-green-200'
                                         }`}
                                     >
                                       <option value="pending">Pending</option>
@@ -844,7 +845,7 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
                       </div>
                     </div>
                   )}
-                  
+
                 </div>
 
                 {/* Action Buttons */}
@@ -1158,107 +1159,97 @@ const OrderManagementDashboard = () => {
       )}
 
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-3 md:mb-4">
-              <div className="bg-white rounded-xl p-3 md:p-4 shadow-md border border-amber-100">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                    <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2 md:p-2.5 rounded-lg flex-shrink-0">
-                      <LayoutDashboard className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                    </div>
-                    <div className="min-w-0">
-                      <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">Tables Order Management</h1>
-                      <p className="text-xs text-gray-600 hidden sm:block">Manage tables, sessions & orders</p>
-                    </div>
-                  </div>
-                </div>
+      <PageHeader
+        icon={LayoutDashboard}
+        title="Tables Order Management"
+        subtitle="Manage tables, sessions & orders"
+      />
+
+      {/* Stats Cards */}
+      <div className="max-w-7xl mx-auto mb-3 md:mb-5">
+        <div className="grid grid-cols-5 sm:grid-cols-5 lg:grid-cols-5 gap-2 md:gap-3">
+          {/* Tables */}
+          <div className="bg-white/90 backdrop-blur border border-blue-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-blue-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <UtensilsCrossed className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
               </div>
+
+              {/* label visible only on md+ */}
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Tables
+              </p>
             </div>
+            <p className="text-lg md:text-xl font-bold text-blue-700">
+              {stats.totalTables}
+            </p>
+          </div>
 
-{/* Stats Cards */}
-<div className="max-w-7xl mx-auto mb-3 md:mb-5">
-  <div className="grid grid-cols-5 sm:grid-cols-5 lg:grid-cols-5 gap-2 md:gap-3">
-    {/* Tables */}
-    <div className="bg-white/90 backdrop-blur border border-blue-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-      <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-        <div className="bg-blue-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-          <UtensilsCrossed className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
+          {/* Occupied */}
+          <div className="bg-white/90 backdrop-blur border border-red-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-red-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <Users className="w-3 h-3 md:w-4 md:h-4 text-red-600" />
+              </div>
+
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Occupied
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-red-700">
+              {stats.occupiedTables}
+            </p>
+          </div>
+
+          {/* Active */}
+          <div className="bg-white/90 backdrop-blur border border-green-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-green-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
+              </div>
+
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Active
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-green-700">
+              {stats.activeSessions}
+            </p>
+          </div>
+
+          {/* Pending */}
+          <div className="bg-white/90 backdrop-blur border border-orange-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-orange-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <ShoppingBag className="w-3 h-3 md:w-4 md:h-4 text-orange-600" />
+              </div>
+
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Pending
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-orange-700">
+              {stats.pendingOrders}
+            </p>
+          </div>
+
+          {/* Today */}
+          <div className="bg-white/90 backdrop-blur border border-purple-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-purple-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <IndianRupee className="w-3 h-3 md:w-4 md:h-4 text-purple-600" />
+              </div>
+
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Today
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-purple-700">
+              ₹{stats.todayRevenue.toFixed(0)}
+            </p>
+          </div>
         </div>
-
-        {/* label visible only on md+ */}
-        <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-          Tables
-        </p>
       </div>
-      <p className="text-lg md:text-xl font-bold text-blue-700">
-        {stats.totalTables}
-      </p>
-    </div>
-
-    {/* Occupied */}
-    <div className="bg-white/90 backdrop-blur border border-red-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-      <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-        <div className="bg-red-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-          <Users className="w-3 h-3 md:w-4 md:h-4 text-red-600" />
-        </div>
-
-        <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-          Occupied
-        </p>
-      </div>
-      <p className="text-lg md:text-xl font-bold text-red-700">
-        {stats.occupiedTables}
-      </p>
-    </div>
-
-    {/* Active */}
-    <div className="bg-white/90 backdrop-blur border border-green-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-      <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-        <div className="bg-green-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-          <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
-        </div>
-
-        <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-          Active
-        </p>
-      </div>
-      <p className="text-lg md:text-xl font-bold text-green-700">
-        {stats.activeSessions}
-      </p>
-    </div>
-
-    {/* Pending */}
-    <div className="bg-white/90 backdrop-blur border border-orange-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-      <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-        <div className="bg-orange-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-          <ShoppingBag className="w-3 h-3 md:w-4 md:h-4 text-orange-600" />
-        </div>
-
-        <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-          Pending
-        </p>
-      </div>
-      <p className="text-lg md:text-xl font-bold text-orange-700">
-        {stats.pendingOrders}
-      </p>
-    </div>
-
-    {/* Today */}
-    <div className="bg-white/90 backdrop-blur border border-purple-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-      <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-        <div className="bg-purple-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-          <IndianRupee className="w-3 h-3 md:w-4 md:h-4 text-purple-600" />
-        </div>
-
-        <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-          Today
-        </p>
-      </div>
-      <p className="text-lg md:text-xl font-bold text-purple-700">
-        ₹{stats.todayRevenue.toFixed(0)}
-      </p>
-    </div>
-  </div>
-</div>
 
 
       {/* Filters & View Controls */}
@@ -1413,10 +1404,10 @@ const OrderManagementDashboard = () => {
         ) : viewMode === 'grid' ? (
           // Grid View
           <div className={`grid gap-2 md:gap-3 ${gridColumns === 2 ? 'grid-cols-2' :
-              gridColumns === 3 ? 'grid-cols-2 md:grid-cols-3' :
-                gridColumns === 4 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' :
-                  gridColumns === 5 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' :
-                    'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'
+            gridColumns === 3 ? 'grid-cols-2 md:grid-cols-3' :
+              gridColumns === 4 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' :
+                gridColumns === 5 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' :
+                  'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'
             }`}>
             {filteredTables.length === 0 ? (
               <div className="col-span-full">
@@ -1438,8 +1429,8 @@ const OrderManagementDashboard = () => {
                     key={table._id}
                     onClick={() => handleTableClick(table)}
                     className={`relative p-3 md:p-4 rounded-xl border-2 shadow-md transition-all hover:scale-105 hover:shadow-lg ${isOccupied
-                        ? 'bg-gradient-to-br from-red-50 to-rose-100 border-red-300'
-                        : 'bg-gradient-to-br from-green-50 to-emerald-100 border-green-300'
+                      ? 'bg-gradient-to-br from-red-50 to-rose-100 border-red-300'
+                      : 'bg-gradient-to-br from-green-50 to-emerald-100 border-green-300'
                       }`}
                   >
                     <div className="text-center">
@@ -1535,8 +1526,8 @@ const OrderManagementDashboard = () => {
                           <td className="px-3 md:px-4 py-2 md:py-3">
                             <div className="flex justify-center">
                               <span className={`inline-flex items-center gap-1 px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg font-bold text-[10px] md:text-xs ${isOccupied
-                                  ? 'bg-red-100 border border-red-300 text-red-700'
-                                  : 'bg-green-100 border border-green-300 text-green-700'
+                                ? 'bg-red-100 border border-red-300 text-red-700'
+                                : 'bg-green-100 border border-green-300 text-green-700'
                                 }`}>
                                 {isOccupied ? (
                                   <>

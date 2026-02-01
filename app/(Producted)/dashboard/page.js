@@ -20,6 +20,7 @@ import {
 
 import dynamic from 'next/dynamic';
 import 'chart.js/auto';
+import PageHeader from '@/components/PageHeader';
 
 const Line = dynamic(() => import('react-chartjs-2').then((mod) => mod.Line), {
   ssr: false,
@@ -210,21 +211,11 @@ export default function OwnerDashboard() {
       <div className="max-w-7xl mx-auto space-y-4">
         
         {/* Header */}
-        <div className="bg-white rounded-xl p-3 md:p-4 shadow-md border border-amber-100">
-          <div className="flex items-center justify-between gap-3">
-
-            <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-              <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2 md:p-2.5 rounded-lg flex-shrink-0">
-                <ShoppingBagIcon className="w-4 h-4 md:w-5 md:h-5 text-white" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">Dashboard Overview</h1>
-                <p className="text-xs text-gray-600 hidden sm:block">Overview of your business</p>
-              </div>
-            </div>
-           
-          </div>
-        </div>
+        <PageHeader
+        icon={ShoppingBag}
+        title="Dashboard Overview"
+        subtitle="Overview of your business"
+      />
 
 
 
