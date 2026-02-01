@@ -489,7 +489,7 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <p className="text-gray-600 text-[10px] md:text-xs">Items: {cartItemsCount}</p>
-                      <p className="text-xl md:text-2xl font-bold text-amber-600">₹{cartTotal.toFixed(2)}</p>
+                      <p className="text-xl md:text-2xl font-bold text-amber-600">₹{cartTotal}</p>
                     </div>
                     <button onClick={() => setCart({})} className="text-xs text-red-600 font-semibold px-2 md:px-3 py-1 md:py-1.5 bg-red-50 rounded-lg">
                       Clear
@@ -1052,7 +1052,7 @@ const OrderManagementDashboard = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterFloor, setFilterFloor] = useState('all');
 
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'table'
+  const [viewMode, setViewMode] = useState('table'); // 'grid' or 'table'
   const [gridColumns, setGridColumns] = useState(4); // 2, 3, 4, 5, or 6 columns
 
   const [notification, setNotification] = useState({ show: false, type: '', message: '' });

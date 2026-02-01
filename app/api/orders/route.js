@@ -152,6 +152,7 @@ export async function POST(req) {
     // Validate and prepare order items
     const orderItems = [];
     let totalAmount = 0;
+    let maxPreparationTime = 15;
 
     for (const item of items) {
       const menuItem = await MenuItem.findById(item.menuItemId);
@@ -165,6 +166,11 @@ export async function POST(req) {
 
       const subtotal = menuItem.price * item.quantity;
       totalAmount += subtotal;
+
+      // Track the maximum preparation time
+      if (menuItem.preparationTime) {
+        maxPreparationTime = Math.max(maxPreparationTime, menuItem.preparationTime);
+      }
 
       orderItems.push({
         menuItem: menuItem._id,
@@ -185,15 +191,13 @@ export async function POST(req) {
       placedBy: 'staff',
       items: orderItems,
       orderAmount: totalAmount,
-      orderedBy: currentUser._id,
+      orderedBy: currentUser.userId,
       customerNotes,
-      estimatedTime: Math.max(...orderItems.map(item => 
-        item.menuItem.preparationTime || 15
-      )),
+      estimatedTime: maxPreparationTime,
       statusHistory: [{
         status: 'pending',
         timestamp: new Date(),
-        updatedBy: currentUser._id
+        updatedBy: currentUser.userId
       }]
     });
 

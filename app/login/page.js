@@ -141,11 +141,11 @@ const LoginPage = () => {
 
         setIsLoading(false);
         if (data.data.user.role === 'owner') {
-          router.push('/owner/dashboard');
+          router.push('/dashboard');
         } else if (data.data.user.role === 'staff') {
-          router.push('/staff/orders');
+          router.push('/orders');
         } else if (data.data.user.role === 'manager') {
-          router.push('/manager/dashboard');
+          router.push('/orders');
         } else {
           router.push('/');
         }

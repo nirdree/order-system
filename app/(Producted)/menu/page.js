@@ -4,9 +4,13 @@ import {
   UtensilsCrossed, Folder, Plus, Edit, Trash2, Search, Filter, X, Save,
   CheckCircle, AlertCircle, Loader, ChevronDown, IndianRupee, Clock, Tag,
   Star, Upload, Image as ImageIcon, Coffee, Sparkles, IceCream, Droplets,
-  Milk, LayoutDashboard, Eye, EyeOff, Grid, List, LayoutGrid
+  Milk, LayoutDashboard, Eye, EyeOff, Grid, List, LayoutGrid,
+  Users,
+  ShoppingBag
 } from 'lucide-react';
 import { menuItemsAPI, categoriesAPI } from '@/lib/api-client';
+import { useUser } from '@/context/UserContext';
+import { useRouter } from 'next/navigation';
 
 // Cloudinary configuration
 const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
@@ -22,8 +26,10 @@ const iconOptions = [
 ];
 
 const MenuDashboard = () => {
+  const router = useRouter();
+    const { user, loading, logout } = useUser();
   const [activeTab, setActiveTab] = useState('menu');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'table'
+  const [viewMode, setViewMode] = useState('table'); // 'grid' or 'table'
   const [gridColumns, setGridColumns] = useState(4); // 2, 3, 4, or 5 columns
 
   // Menu Items State
@@ -79,6 +85,16 @@ const MenuDashboard = () => {
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+
+   useEffect(() => {
+      if (!loading) {
+        if (!user || user.role === 'staff') {
+          router.push('/login');
+          return;
+        }
+        
+      }
+    }, [loading, user, router]);
 
   useEffect(() => {
     loadCategories();
@@ -643,6 +659,10 @@ const MenuDashboard = () => {
                 <p className="text-xs text-gray-600 hidden sm:block">Manage menu & categories</p>
               </div>
             </div>
+            <button  onClick={activeTab === 'menu'? openAddMenuModal : openAddCategoryModal} className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-3 py-2 rounded-lg font-semibold text-sm flex-shrink-0">
+                          <Plus className="w-4 h-4" />
+                          <span className="hidden sm:inline">Add</span>
+                        </button>
           </div>
         </div>
       </div>
@@ -678,6 +698,78 @@ const MenuDashboard = () => {
       {/* Menu Items Tab */}
       {activeTab === 'menu' && (
         <>
+
+{/* Stats Cards */}
+<div className="max-w-7xl mx-auto mb-3 md:mb-5">
+  <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-4 gap-2 md:gap-3">
+    {/* Total Items */}
+    <div className="bg-white/90 backdrop-blur border border-blue-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+      <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+        <div className="bg-blue-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+          <UtensilsCrossed className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
+        </div>
+
+        
+        <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+          Total Items
+        </p>
+      </div>
+      <p className="text-lg md:text-xl font-bold text-blue-700">
+        {menuItems.length}
+      </p>
+    </div>
+
+    {/* Available */}
+    <div className="bg-white/90 backdrop-blur border border-red-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+      <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+        <div className="bg-red-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+          <Users className="w-3 h-3 md:w-4 md:h-4 text-red-600" />
+        </div>
+
+        <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+          Available
+        </p>
+      </div>
+      <p className="text-lg md:text-xl font-bold text-red-700">
+        {menuItems.filter(i => i.available).length}
+      </p>
+    </div>
+
+    {/* Best Sellers */}
+    <div className="bg-white/90 backdrop-blur border border-green-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+      <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+        <div className="bg-green-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+          <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
+        </div>
+
+        <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+          Best Sellers
+        </p>
+      </div>
+      <p className="text-lg md:text-xl font-bold text-green-700">
+        {menuItems.filter(i => i.mostSell).length}
+      </p>
+    </div>
+
+    {/* Categories */}
+    <div className="bg-white/90 backdrop-blur border border-orange-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+      <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+        <div className="bg-orange-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+          <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-orange-600" />
+        </div>
+
+        <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+          Categories
+        </p>
+      </div>
+      <p className="text-lg md:text-xl font-bold text-orange-700">
+        {categories.length}
+      </p>
+    </div>
+
+  </div>
+</div>
+              {/* View Controls & Filters */}
           <div className="max-w-7xl mx-auto mb-3 md:mb-4">
             <div className="bg-white rounded-xl p-3 md:p-4 shadow-md border border-amber-100 space-y-3">
 
@@ -744,14 +836,7 @@ const MenuDashboard = () => {
                     </div>
                   )}
 
-                  <button
-                    onClick={openAddMenuModal}
-                    className="flex items-center gap-1 md:gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg font-semibold text-xs md:text-sm flex-shrink-0 hover:shadow-md transition-all"
-                  >
-                    <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                    <span className="hidden sm:inline">Add Item</span>
-                    <span className="sm:hidden">Add</span>
-                  </button>
+                 
                 </div>
               </div>
 
@@ -817,34 +902,7 @@ const MenuDashboard = () => {
                 </div>
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-4 sm:grid-cols-4 gap-2">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 md:p-2.5 text-center">
-                  <p className="text-[10px] md:text-xs text-gray-600 mb-0.5">Total Items</p>
-                  <p className="text-base md:text-lg font-bold text-blue-700">{menuItems.length}</p>
-                </div>
-
-                <div className="bg-green-50 border border-green-200 rounded-lg p-2 md:p-2.5 text-center">
-                  <p className="text-[10px] md:text-xs text-gray-600 mb-0.5">Available</p>
-                  <p className="text-base md:text-lg font-bold text-green-700">
-                    {menuItems.filter(i => i.available).length}
-                  </p>
-                </div>
-
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 md:p-2.5 text-center">
-                  <p className="text-[10px] md:text-xs text-gray-600 mb-0.5">Best Sellers</p>
-                  <p className="text-base md:text-lg font-bold text-amber-700">
-                    {menuItems.filter(i => i.mostSell).length}
-                  </p>
-                </div>
-
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 md:p-2.5 text-center">
-                  <p className="text-[10px] md:text-xs text-gray-600 mb-0.5">Categories</p>
-                  <p className="text-base md:text-lg font-bold text-purple-700">
-                    {categories.length}
-                  </p>
-                </div>
-              </div>
+              
 
             </div>
           </div>
@@ -1192,6 +1250,30 @@ const MenuDashboard = () => {
       {/* Categories Tab */}
       {activeTab === 'categories' && (
         <>
+   
+
+              {/* Stats Cards */}
+<div className="max-w-7xl mx-auto mb-3 md:mb-5">
+  <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-2 md:gap-3">
+    {/* Total Categories */}
+    <div className="bg-white/90 backdrop-blur border border-blue-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+      <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+        <div className="bg-blue-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+          <UtensilsCrossed className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
+        </div>
+
+        
+        <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+          Total Categories
+        </p>
+      </div>
+      <p className="text-lg md:text-xl font-bold text-blue-700">
+        {filteredCategories.length}
+      </p>
+    </div>
+
+  </div>
+</div>
           <div className="max-w-7xl mx-auto mb-3 md:mb-4">
             <div className="bg-white rounded-xl p-3 md:p-4 shadow-md border border-amber-100">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 mb-3">
@@ -1267,14 +1349,7 @@ const MenuDashboard = () => {
                     </div>
                   )}
 
-                  <button
-                    onClick={openAddCategoryModal}
-                    className="flex items-center gap-1 md:gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg font-semibold text-xs md:text-sm flex-shrink-0 hover:shadow-md transition-all"
-                  >
-                    <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                    <span className="hidden sm:inline">Add Category</span>
-                    <span className="sm:hidden">Add</span>
-                  </button>
+                  
                 </div>
               </div>
 
@@ -1289,10 +1364,7 @@ const MenuDashboard = () => {
                 />
               </div>
 
-              <div className="bg-amber-50 rounded-lg px-3 py-2 md:py-2.5 border border-amber-200 text-center">
-                <p className="text-[10px] md:text-xs text-gray-600 mb-0.5">Total Categories</p>
-                <p className="text-base md:text-lg font-bold text-amber-700">{filteredCategories.length}</p>
-              </div>
+             
             </div>
           </div>
 

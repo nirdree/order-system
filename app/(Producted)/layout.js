@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Users,
   MenuSquare,
@@ -15,36 +15,69 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
+
 export default function OwnerLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const { user, loading, logout } = useUser();
 
+  /* ===============================
+     BLOCK PRERENDER UNTIL USER LOADS
+     =============================== */
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-amber-50">
+        <span className="text-amber-900 font-semibold">Loading...</span>
+      </div>
+    );
+  }
+
+  /* ===============================
+     PROTECT ROUTE
+     =============================== */
+  if (!user) {
+    router.push('/login');
+    return null;
+  }
+
+  /* ===============================
+     ROLE-BASED MENU
+     =============================== */
   const menuItems = [
-    { name: 'Dashboard', href: '/manager/dashboard', icon: LayoutDashboard },
-    { name: 'Orders', href: '/manager/orders', icon: Receipt },
-    { name: 'Table Orders', href: '/manager/tablesorders', icon: ShoppingCart },
-    { name: 'Menu Management', href: '/manager/menu', icon: MenuSquare },
-    { name: 'Tables Management', href: '/manager/tables', icon: UtensilsCrossed },
-    { name: 'User Management', href: '/manager/users', icon: Users },
+    ...(user.role !== 'staff' && user.role !== 'manager'
+      ? [{ name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }]
+      : []),
+
+    { name: 'Orders', href: '/orders', icon: Receipt },
+    { name: 'Table Orders', href: '/tablesorders', icon: ShoppingCart },
+
+    ...(user.role !== 'staff'
+      ? [
+          { name: 'Menu Management', href: '/menu', icon: MenuSquare },
+          { name: 'Tables Management', href: '/tables', icon: UtensilsCrossed },
+          { name: 'User Management', href: '/users', icon: Users },
+        ]
+      : []),
   ];
 
-  const handleLogout = async() => {
-    
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push('/login');
   };
 
   return (
     <div className="flex min-h-screen bg-amber-50">
-      {/* Desktop Sidebar */}
+      {/* ===============================
+          DESKTOP SIDEBAR
+          =============================== */}
       <aside className="hidden md:flex w-64 bg-white shadow-lg flex-col fixed h-full left-0 top-0">
         <div className="p-6 text-2xl font-bold text-amber-900">
           Cafe Owner
         </div>
+
         <h1 className="px-6 mb-6 text-sm font-medium">
-          Welcome, {user?.name}
+          Welcome, {user.name}
         </h1>
 
         <nav className="px-4 space-y-2">
@@ -70,7 +103,7 @@ export default function OwnerLayout({ children }) {
           })}
         </nav>
 
-        {/* Logout (Bottom) */}
+        {/* Logout */}
         <div className="mt-auto p-4 border-t">
           <button
             onClick={handleLogout}
@@ -82,16 +115,16 @@ export default function OwnerLayout({ children }) {
         </div>
       </aside>
 
-      {/* Mobile Drawer */}
+      {/* ===============================
+          MOBILE DRAWER
+          =============================== */}
       {open && (
         <div className="fixed inset-0 z-40 md:hidden">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40"
             onClick={() => setOpen(false)}
           />
 
-          {/* Drawer */}
           <aside className="absolute left-0 top-0 h-full w-64 bg-white shadow-lg z-50 flex flex-col p-4">
             <div className="flex items-center justify-between mb-6">
               <span className="text-lg font-bold text-amber-900">
@@ -126,7 +159,6 @@ export default function OwnerLayout({ children }) {
               })}
             </nav>
 
-            {/* Logout (Bottom) */}
             <div className="mt-auto pt-4 border-t">
               <button
                 onClick={() => {
@@ -143,9 +175,10 @@ export default function OwnerLayout({ children }) {
         </div>
       )}
 
-      {/* Main Content */}
+      {/* ===============================
+          MAIN CONTENT
+          =============================== */}
       <main className="flex-1 w-full md:ml-64">
-        {/* Mobile Top Bar */}
         <div className="md:hidden flex items-center gap-3 p-4 bg-white shadow">
           <button onClick={() => setOpen(true)}>
             <Menu />

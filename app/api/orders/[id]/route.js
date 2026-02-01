@@ -83,7 +83,7 @@ export async function PUT(req, { params }) {
       targetOrder.statusHistory.push({
         status: body.orderStatus,
         timestamp: new Date(),
-        updatedBy: currentUser._id
+        updatedBy: currentUser.userId
       });
     }
 
@@ -112,7 +112,7 @@ export async function PUT(req, { params }) {
   }
 }
 
-// DELETE - Cancel order
+// DELETE - Delete order from database
 export async function DELETE(req, { params }) {
   try {
     await connectDB();
@@ -135,26 +135,22 @@ export async function DELETE(req, { params }) {
       return errorResponse('Order not found', 404);
     }
 
-    // Update order status to cancelled
-    order.orderStatus = 'cancelled';
-    if (!order.statusHistory) {
-      order.statusHistory = [];
-    }
-    order.statusHistory.push({
-      status: 'cancelled',
-      timestamp: new Date(),
-      updatedBy: currentUser._id
-    });
-    await order.save();
+    // Get session before deleting order
+    const sessionId = order.session;
 
-    // Update session total if order belongs to a session
-    if (order.session) {
-      const session = await Session.findById(order.session);
+    // Delete order from database
+    await Order.findByIdAndDelete(id);
+
+    // Remove order from session if it exists
+    if (sessionId) {
+      const session = await Session.findById(sessionId);
       if (session) {
-        // Recalculate session total
+        // Remove order from session's orders array
+        session.orders = session.orders.filter(orderId => orderId.toString() !== id);
+        
+        // Recalculate session total from remaining orders
         const activeOrders = await Order.find({
-          session: session._id,
-          orderStatus: { $ne: 'cancelled' }
+          session: session._id
         });
         
         const newTotal = activeOrders.reduce((sum, o) => sum + o.orderAmount, 0);
@@ -165,7 +161,7 @@ export async function DELETE(req, { params }) {
 
     return successResponse(
       null,
-      'Order cancelled successfully',
+      'Order deleted successfully',
       200
     );
 
@@ -174,3 +170,66 @@ export async function DELETE(req, { params }) {
     return errorResponse('Failed to delete order', 500);
   }
 }
+
+// // DELETE - Cancel order // Soft delete
+// export async function DELETE(req, { params }) {
+//   try {
+//     await connectDB();
+
+//     const currentUser = await authenticate(req);
+
+//     if (!currentUser?.role) {
+//       return errorResponse('Invalid user role', 403);
+//     }
+
+//     // Only manager and owner can delete orders
+//     if (!['manager', 'owner'].includes(currentUser.role)) {
+//       return errorResponse('You do not have access to delete orders', 403);
+//     }
+
+//     const { id } = await params;
+
+//     const order = await Order.findById(id);
+//     if (!order) {
+//       return errorResponse('Order not found', 404);
+//     }
+
+//     // Update order status to cancelled
+//     order.orderStatus = 'cancelled';
+//     if (!order.statusHistory) {
+//       order.statusHistory = [];
+//     }
+//     order.statusHistory.push({
+//       status: 'cancelled',
+//       timestamp: new Date(),
+//       updatedBy: currentUser.userId
+//     });
+//     await order.save();
+
+//     // Update session total if order belongs to a session
+//     if (order.session) {
+//       const session = await Session.findById(order.session);
+//       if (session) {
+//         // Recalculate session total
+//         const activeOrders = await Order.find({
+//           session: session._id,
+//           orderStatus: { $ne: 'cancelled' }
+//         });
+        
+//         const newTotal = activeOrders.reduce((sum, o) => sum + o.orderAmount, 0);
+//         session.totalAmount = newTotal;
+//         await session.save();
+//       }
+//     }
+
+//     return successResponse(
+//       null,
+//       'Order cancelled successfully',
+//       200
+//     );
+
+//   } catch (error) {
+//     console.error('Delete order error:', error.message);
+//     return errorResponse('Failed to delete order', 500);
+//   }
+// }

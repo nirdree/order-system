@@ -186,6 +186,16 @@ export default function OwnerDashboard() {
     completed: 1756,
     cancelled: 45
   });
+  const router = useRouter();
+   useEffect(() => {
+      if (!loading) {
+        if (!user || user.role === 'staff' || user.role === 'manager') {
+          router.push('/login');
+          return;
+        }
+       
+      }
+    }, [loading, user, router]);
 
   if (loading) {
     return (
@@ -216,94 +226,79 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-1.5 bg-blue-50 rounded">
-                <IndianRupee className="w-4 h-4 text-blue-600" />
-              </div>
-              <span className="text-xs text-gray-500">Revenue</span>
-            </div>
-            <p className="text-xl font-semibold text-gray-800">₹{(staticData.revenue.total / 1000).toFixed(0)}k</p>
-            <p className="text-xs text-green-600 mt-1">+{staticData.revenue.growth}%</p>
-          </div>
 
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-1.5 bg-green-50 rounded">
-                <ShoppingBag className="w-4 h-4 text-green-600" />
-              </div>
-              <span className="text-xs text-gray-500">Orders</span>
-            </div>
-            <p className="text-xl font-semibold text-gray-800">{staticData.orders.total}</p>
-            <p className="text-xs text-gray-500 mt-1">₹{staticData.orders.avgValue} avg</p>
-          </div>
 
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-1.5 bg-purple-50 rounded">
-                <Users className="w-4 h-4 text-purple-600" />
-              </div>
-              <span className="text-xs text-gray-500">Customers</span>
-            </div>
-            <p className="text-xl font-semibold text-gray-800">{staticData.customers.total}</p>
-            <p className="text-xs text-gray-500 mt-1">{staticData.customers.new} new</p>
-          </div>
 
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-1.5 bg-yellow-50 rounded">
-                <Star className="w-4 h-4 text-yellow-600" />
+        {/* Stats Cards */}
+      <div className="max-w-7xl mx-auto mb-3 md:mb-5">
+        <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-4 gap-2 md:gap-3">
+          {/* Tables */}
+          <div className="bg-white/90 backdrop-blur border border-blue-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-blue-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <Users className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
               </div>
-              <span className="text-xs text-gray-500">Rating</span>
+      
+              
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Total Tables
+              </p>
             </div>
-            <p className="text-xl font-semibold text-gray-800">4.7</p>
-            <p className="text-xs text-gray-500 mt-1">1.2k reviews</p>
+            <p className="text-lg md:text-xl font-bold text-blue-700">
+             34
+            </p>
           </div>
+      
+          {/* Available */}
+          <div className="bg-white/90 backdrop-blur border border-red-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-red-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <Users className="w-3 h-3 md:w-4 md:h-4 text-red-600" />
+              </div>
+      
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Available
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-red-700">
+              12
+            </p>
+          </div>
+      
+          {/* Occupied */}
+          <div className="bg-white/90 backdrop-blur border border-green-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-green-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
+              </div>
+      
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Occupied
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-green-700">
+             23
+            </p>
+          </div>
+      
+          {/* Capacity */}
+          <div className="bg-white/90 backdrop-blur border border-orange-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-orange-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-orange-600" />
+              </div>
+      
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Capacity
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-orange-700">
+              10
+            </p>
+          </div>
+      
         </div>
-
-        {/* Order Status */}
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-800 mb-3">Order Status</h2>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-            <div className="text-center p-3 bg-gray-50 rounded">
-              <TrendingUp className="w-4 h-4 text-blue-600 mx-auto mb-1" />
-              <p className="text-xs text-gray-500">Total</p>
-              <p className="text-lg font-semibold text-gray-800">{metrics.total}</p>
-            </div>
-
-            <div className="text-center p-3 bg-gray-50 rounded">
-              <Clock className="w-4 h-4 text-yellow-600 mx-auto mb-1" />
-              <p className="text-xs text-gray-500">Pending</p>
-              <p className="text-lg font-semibold text-gray-800">{metrics.pending}</p>
-            </div>
-
-            <div className="text-center p-3 bg-gray-50 rounded">
-              <Loader className="w-4 h-4 text-blue-600 mx-auto mb-1" />
-              <p className="text-xs text-gray-500">Preparing</p>
-              <p className="text-lg font-semibold text-gray-800">{metrics.preparing}</p>
-            </div>
-
-            <div className="text-center p-3 bg-gray-50 rounded">
-              <CheckCircle className="w-4 h-4 text-green-600 mx-auto mb-1" />
-              <p className="text-xs text-gray-500">Ready</p>
-              <p className="text-lg font-semibold text-gray-800">{metrics.ready}</p>
-            </div>
-
-            <div className="text-center p-3 bg-gray-50 rounded">
-              <CheckCircle className="w-4 h-4 text-gray-600 mx-auto mb-1" />
-              <p className="text-xs text-gray-500">Completed</p>
-              <p className="text-lg font-semibold text-gray-800">{metrics.completed}</p>
-            </div>
-
-            <div className="text-center p-3 bg-gray-50 rounded">
-              <XCircle className="w-4 h-4 text-red-600 mx-auto mb-1" />
-              <p className="text-xs text-gray-500">Cancelled</p>
-              <p className="text-lg font-semibold text-gray-800">{metrics.cancelled}</p>
-            </div>
-          </div>
-        </div>
+      </div>
 
         {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -6,8 +6,11 @@ import {
   CheckCircle, AlertCircle, Loader, ChevronDown, User
 } from 'lucide-react';
 import { usersAPI } from '@/lib/api-client';
-
+import { useUser } from '@/context/UserContext';
+import { useRouter } from 'next/navigation';
 const UserManagement = () => {
+  const router = useRouter();
+  const { user, loading, logout } = useUser();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,6 +23,7 @@ const UserManagement = () => {
   const [notification, setNotification] = useState({ show: false, type: '', message: '' });
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, userId: null });
   const [isLoading, setIsLoading] = useState(false);
+  const currentUserRole = user?.role || '';
 
   const [formData, setFormData] = useState({
     name: '',
@@ -36,10 +40,17 @@ const UserManagement = () => {
   const [touched, setTouched] = useState({});
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+    if (!loading) {
+      if (!user || currentUserRole === 'staff') {
+        router.push('/login');
+        return;
+      }
+      loadUsers();
+    }
+  }, [loading, user, router]);
 
   useEffect(() => {
+   
     filterUsers();
   }, [searchTerm, filterRole, filterStatus, users]);
 
@@ -378,6 +389,14 @@ const UserManagement = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader className="w-8 h-8 animate-spin text-amber-600" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-3 sm:p-4">
       {/* Notification */}
@@ -424,11 +443,88 @@ const UserManagement = () => {
                 <p className="text-xs text-gray-600 hidden sm:block">Manage staff & team</p>
               </div>
             </div>
+            {user.role === 'owner' && (
+<button onClick={openAddModal} className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-3 py-2 rounded-lg font-semibold text-sm flex-shrink-0">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Add</span>
+            </button>
+            )}
+            
           </div>
         </div>
       </div>
 
-{/* Filters & Stats */}
+    {/* Stats Cards */}
+      <div className="max-w-7xl mx-auto mb-3 md:mb-5">
+        <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-4 gap-2 md:gap-3">
+          {/* Users */}
+          <div className="bg-white/90 backdrop-blur border border-blue-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-blue-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <Users className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
+              </div>
+      
+              
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Total Users
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-blue-700">
+             {users.length}
+            </p>
+          </div>
+      
+          {/* Active Users */}
+          <div className="bg-white/90 backdrop-blur border border-red-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-red-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <Users className="w-3 h-3 md:w-4 md:h-4 text-red-600" />
+              </div>
+      
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Active Users
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-red-700">
+               {users.filter(u => u.isActive).length}
+            </p>
+          </div>
+      
+          {/* Managers */}
+          <div className="bg-white/90 backdrop-blur border border-green-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-green-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
+              </div>
+      
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Total Managers
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-green-700">
+              {users.filter(u => u.role === 'manager').length}
+            </p>
+          </div>
+      
+          {/* Total Staff */}
+          <div className="bg-white/90 backdrop-blur border border-orange-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-orange-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-orange-600" />
+              </div>
+      
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Total Staff
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-orange-700">
+              {users.filter(u => u.role === 'staff').length}
+            </p>
+          </div>
+      
+        </div>
+      </div>
+{/* Filters  */}
 <div className="max-w-7xl mx-auto mb-3">
   <div className="bg-white rounded-xl p-3 shadow-md border border-amber-100 space-y-3">
 
@@ -480,73 +576,6 @@ const UserManagement = () => {
 
     </div>
 
-    {/* ================= STATS ================= */}
-
-    {/* 📱 MOBILE: ONE BOX */}
-    <div className="md:hidden">
-      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-3">
-        <div className="grid grid-cols-4 gap-3 text-center">
-
-          <div>
-            <p className="text-xs text-gray-600">Total</p>
-            <p className="text-lg font-bold text-amber-700">{users.length}</p>
-          </div>
-
-          <div>
-            <p className="text-xs text-gray-600">Active</p>
-            <p className="text-lg font-bold text-green-700">
-              {users.filter(u => u.isActive).length}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs text-gray-600">Managers</p>
-            <p className="text-lg font-bold text-purple-700">
-              {users.filter(u => u.role === 'manager').length}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs text-gray-600">Staff</p>
-            <p className="text-lg font-bold text-blue-700">
-              {users.filter(u => u.role === 'staff').length}
-            </p>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    {/* 🖥️ DESKTOP: 4 BOXES */}
-    <div className="hidden md:grid md:grid-cols-4 gap-2">
-
-      <div className="bg-amber-50 border border-amber-200 rounded-lg py-2.5 text-center">
-        <p className="text-xs text-gray-600">Total</p>
-        <p className="text-lg font-bold text-amber-700">{users.length}</p>
-      </div>
-
-      <div className="bg-green-50 border border-green-200 rounded-lg py-2.5 text-center">
-        <p className="text-xs text-gray-600">Active</p>
-        <p className="text-lg font-bold text-green-700">
-          {users.filter(u => u.isActive).length}
-        </p>
-      </div>
-
-      <div className="bg-purple-50 border border-purple-200 rounded-lg py-2.5 text-center">
-        <p className="text-xs text-gray-600">Managers</p>
-        <p className="text-lg font-bold text-purple-700">
-          {users.filter(u => u.role === 'manager').length}
-        </p>
-      </div>
-
-      <div className="bg-blue-50 border border-blue-200 rounded-lg py-2.5 text-center">
-        <p className="text-xs text-gray-600">Staff</p>
-        <p className="text-lg font-bold text-blue-700">
-          {users.filter(u => u.role === 'staff').length}
-        </p>
-      </div>
-
-    </div>
 
   </div>
 </div>
@@ -612,7 +641,16 @@ const UserManagement = () => {
                           <button onClick={() => openEditModal(user)} className="p-1.5 bg-blue-100 text-blue-600 rounded-lg">
                             <Edit className="w-4 h-4" />
                           </button>
-   
+                          {currentUserRole === 'owner' && (
+                          <button
+                            onClick={() => handleDelete(user._id)}
+                            disabled={user.role === 'owner'}
+                            className={`p-1.5 rounded-lg ${user.role === 'owner' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-100 text-red-600'}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          )}
+                          
                         </div>
                       </td>
                     </tr>
@@ -674,13 +712,16 @@ const UserManagement = () => {
                     <button onClick={() => openEditModal(user)} className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium">
                       <Edit className="w-3.5 h-3.5" />Edit
                     </button>
-                    <button
+                    {currentUserRole === 'owner' && (
+                      <button
                       onClick={() => handleDelete(user._id)}
                       disabled={user.role === 'owner'}
                       className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium ${user.role === 'owner' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-50 text-red-600'}`}
                     >
                       <Trash2 className="w-3.5 h-3.5" />Delete
                     </button>
+                    )}
+                    
                   </div>
                 </div>
               ))

@@ -8,8 +8,12 @@ import {
 import QRCode from 'qrcode';
 import jsPDF from 'jspdf';
 import { tablesAPI } from '@/lib/api-client';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/context/UserContext';
 
 const TableManagement = () => {
+  const router = useRouter();
+    const { user, loading, logout } = useUser();
   const [tables, setTables] = useState([]);
   const [filteredTables, setFilteredTables] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,6 +38,14 @@ const TableManagement = () => {
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+   useEffect(() => {
+    if (!loading) {
+      if (!user || user.role === 'staff') {
+        router.push('/login');
+        return;
+      }
+    }
+  }, [loading, user, router]);
 
   useEffect(() => {
     loadTables();
@@ -558,6 +570,77 @@ const TableManagement = () => {
         </div>
       </div>
 
+      {/* Stats Cards */}
+      <div className="max-w-7xl mx-auto mb-3 md:mb-5">
+        <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-4 gap-2 md:gap-3">
+          {/* Tables */}
+          <div className="bg-white/90 backdrop-blur border border-blue-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-blue-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <UtensilsCrossed className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
+              </div>
+      
+              
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Total Tables
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-blue-700">
+              {tables.length}
+            </p>
+          </div>
+      
+          {/* Available */}
+          <div className="bg-white/90 backdrop-blur border border-red-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-red-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <Users className="w-3 h-3 md:w-4 md:h-4 text-red-600" />
+              </div>
+      
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Available
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-red-700">
+              {tables.filter(t => t.status === 'available').length}
+            </p>
+          </div>
+      
+          {/* Occupied */}
+          <div className="bg-white/90 backdrop-blur border border-green-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-green-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
+              </div>
+      
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Occupied
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-green-700">
+              {tables.filter(t => t.status === 'occupied').length}
+            </p>
+          </div>
+      
+          {/* Capacity */}
+          <div className="bg-white/90 backdrop-blur border border-orange-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
+              <div className="bg-orange-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
+                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-orange-600" />
+              </div>
+      
+              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
+                Capacity
+              </p>
+            </div>
+            <p className="text-lg md:text-xl font-bold text-orange-700">
+              {tables.reduce((sum, t) => sum + t.capacity, 0)}
+            </p>
+          </div>
+      
+        </div>
+      </div>
+
       {/* Filters */}
       <div className="max-w-7xl mx-auto mb-3">
   <div className="bg-white rounded-xl p-3 shadow-md border border-amber-100 space-y-3">
@@ -612,73 +695,7 @@ const TableManagement = () => {
 
     </div>
 
-    {/* ================= STATS ================= */}
 
-    {/* 📱 MOBILE */}
-    <div className="md:hidden">
-      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-3">
-        <div className="grid grid-cols-4 gap-3 text-center">
-
-          <div>
-            <p className="text-xs text-gray-600">Total</p>
-            <p className="text-lg font-bold text-amber-700">{tables.length}</p>
-          </div>
-
-          <div>
-            <p className="text-xs text-gray-600">Available</p>
-            <p className="text-lg font-bold text-green-700">
-              {tables.filter(t => t.status === 'available').length}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs text-gray-600">Occupied</p>
-            <p className="text-lg font-bold text-red-700">
-              {tables.filter(t => t.status === 'occupied').length}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs text-gray-600">Capacity</p>
-            <p className="text-lg font-bold text-purple-700">
-              {tables.reduce((sum, t) => sum + t.capacity, 0)}
-            </p>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    {/* 🖥️ DESKTOP */}
-    <div className="hidden md:grid md:grid-cols-4 gap-2">
-
-      <div className="bg-amber-50 border border-amber-200 rounded-lg py-2.5 text-center">
-        <p className="text-xs text-gray-600">Total</p>
-        <p className="text-lg font-bold text-amber-700">{tables.length}</p>
-      </div>
-
-      <div className="bg-green-50 border border-green-200 rounded-lg py-2.5 text-center">
-        <p className="text-xs text-gray-600">Available</p>
-        <p className="text-lg font-bold text-green-700">
-          {tables.filter(t => t.status === 'available').length}
-        </p>
-      </div>
-
-      <div className="bg-red-50 border border-red-200 rounded-lg py-2.5 text-center">
-        <p className="text-xs text-gray-600">Occupied</p>
-        <p className="text-lg font-bold text-red-700">
-          {tables.filter(t => t.status === 'occupied').length}
-        </p>
-      </div>
-
-      <div className="bg-purple-50 border border-purple-200 rounded-lg py-2.5 text-center">
-        <p className="text-xs text-gray-600">Capacity</p>
-        <p className="text-lg font-bold text-purple-700">
-          {tables.reduce((sum, t) => sum + t.capacity, 0)}
-        </p>
-      </div>
-
-    </div>
 
   </div>
 </div>

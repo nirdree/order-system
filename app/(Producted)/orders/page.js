@@ -217,7 +217,7 @@ export default function OrdersPage() {
   const [filterTable, setFilterTable] = useState('');
 
   // View Mode
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'table'
+  const [viewMode, setViewMode] = useState('table'); // 'grid' or 'table'
   const [gridColumns, setGridColumns] = useState(3); // 1, 2, 3, 4, 5, or 6 columns
 
   // Pagination
