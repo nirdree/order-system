@@ -1,8 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
+  const router = useRouter();
+  const [isDevelopment, setIsDevelopment] = useState(true);
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    // Check if in development mode
+    const devMode = process.env.NEXT_PUBLIC_Mode === 'development';
+    setIsDevelopment(devMode);
+    setIsChecking(false);
+
+    // If not in development, redirect to login
+    if (!devMode) {
+      router.replace('/login');
+    }
+  }, [router]);
+
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isDevelopment) {
+    return null; // Will redirect to login
+  }
+
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -54,12 +83,19 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 relative">
+      {/* Development Mode Badge */}
+      <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full text-xs md:text-sm font-semibold flex items-center gap-1">
+        <span className="inline-block w-2 h-2 bg-white rounded-full animate-pulse"></span>
+        Development Mode
+      </div>
+
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-lg shadow-md w-full max-w-md"
       >
-        <h1 className="text-2xl font-bold mb-4">Signup</h1>
+        <h1 className="text-2xl font-bold mb-2">Signup</h1>
+        <p className="text-xs text-blue-600 mb-4 font-semibold">🔧 Development Mode Only</p>
 
         <input
           name="name"

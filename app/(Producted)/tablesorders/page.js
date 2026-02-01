@@ -11,12 +11,14 @@ import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI } from '@/lib/api-clien
 import PageHeader from '@/components/PageHeader';
 import StatsCards from '@/components/StatsCards';
 import ViewControls from '@/components/ViewControls';
+import BillComponent from '@/components/BillComponent';
 
 // ============= TABLE DETAIL MODAL COMPONENT =============
 export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState({ show: false, type: '', message: '' });
+  const [showBill, setShowBill] = useState(false);
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -864,7 +866,7 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
                     <Plus className="w-4 h-4 md:w-5 md:h-5" />New Order
                   </button>
                   <button
-                    onClick={() => setShowCompleteConfirm(true)}
+                    onClick={() => setShowBill(true)}
                     className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm"
                   >
                     <Receipt className="w-4 h-4 md:w-5 md:h-5" />Bill
@@ -967,6 +969,24 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Bill Component */}
+      {showBill && session && (
+        <BillComponent
+          session={session}
+          table={table}
+          hotelName="Our Cafe"
+          isLoading={isLoading}
+          onPrint={() => {
+            // Bill print functionality is handled by the component
+          }}
+          onConfirm={() => {
+            setShowBill(false);
+            setShowCompleteConfirm(true);
+          }}
+          onCancel={() => setShowBill(false)}
+        />
       )}
 
       {/* Complete Confirmation Modal */}

@@ -4,6 +4,14 @@ import User from '@/models/User';
 
 export async function POST(request) {
   try {
+    // Only allow signup in development mode
+    if (process.env.NEXT_PUBLIC_Mode !== 'development') {
+      return NextResponse.json(
+        { message: 'Signup is only available in development mode' },
+        { status: 403 }
+      );
+    }
+
     await connectDB();
 
     const body = await request.json();
