@@ -6,7 +6,7 @@ import {
   ShoppingBag, Trash2, Package, Utensils, Minus, ShoppingCart, 
   Send, Receipt, Edit2
 } from 'lucide-react';
-import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI, customerAPI } from '@/lib/api-client';
+import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI, customerAPI, categoriesAPI } from '@/lib/api-client';
 import { useParams } from 'next/navigation';
 
 const OrderManagementDashboard = () => {
@@ -83,13 +83,10 @@ const OrderManagementDashboard = () => {
   const loadCategories = async () => {
     try {
       setIsLoadingCategories(true);
-      const response = await fetch('/api/categories');
+      const response = await categoriesAPI.getAllCategories();
       
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setCategories([{ _id: 'all', id: 'all', icon: 'list', imgURL: '', description: 'All Items' }, ...(data.data || [])]);
-        }
+      if (response.success) {
+        setCategories([{ _id: 'all', id: 'all', icon: 'list', imgURL: '', description: 'All Items' }, ...(response.data || [])]);
       }
     } catch (error) {
       console.error('Error loading categories:', error);

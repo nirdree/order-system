@@ -7,7 +7,7 @@ import {
   Package, Utensils, Minus, ShoppingCart, Send, Receipt, Edit2,
   LayoutGrid, List, EyeOff
 } from 'lucide-react';
-import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI } from '@/lib/api-client';
+import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI, categoriesAPI } from '@/lib/api-client';
 import PageHeader from '@/components/PageHeader';
 import StatsCards from '@/components/StatsCards';
 import ViewControls from '@/components/ViewControls';
@@ -87,13 +87,10 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
   const loadCategories = async () => {
     try {
       setIsLoadingCategories(true);
-      const response = await fetch('/api/categories');
+      const response = await categoriesAPI.getAllCategories();
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setCategories([{ id: 'all', icon: 'list', imgURL: '', description: 'All Items' }, ...(data.data || [])]);
-        }
+      if (response.success) {
+        setCategories([{ id: 'all', icon: 'list', imgURL: '', description: 'All Items' }, ...(response.data || [])]);
       }
     } catch (error) {
       console.error('Error loading categories:', error);

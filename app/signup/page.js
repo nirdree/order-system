@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { authAPI } from '@/lib/api-client';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -54,15 +55,9 @@ export default function SignupPage() {
     setMessage('');
 
     try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      });
+      const data = await authAPI.signup(form);
 
-      const data = await res.json();
-
-      if (!res.ok) {
+      if (!data.success) {
         setMessage(data.message || 'Signup failed');
       } else {
         setMessage('Signup successful ✅');

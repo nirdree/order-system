@@ -33,6 +33,7 @@ import {
 import PageHeader from '@/components/PageHeader';
 import StatsCards from '@/components/StatsCards';
 import ViewControls from '@/components/ViewControls';
+import { ordersAPI } from '@/lib/api-client';
 
 // ============= ORDER DETAIL MODAL COMPONENT =============
 const OrderDetailModal = ({ order, isOpen, onClose, onStatusChange, onCancel }) => {
@@ -252,13 +253,7 @@ export default function OrdersPage() {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch('/api/orders', {
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch orders');
-
-      const data = await response.json();
+      const data = await ordersAPI.getAllOrders();
 
       if (data.success) {
         const ordersList = data.data.orders || [];
@@ -344,15 +339,7 @@ export default function OrdersPage() {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      const response = await fetch(`/api/orders/${orderId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderStatus: newStatus })
-      });
-
-      if (!response.ok) throw new Error('Failed to update order status');
-
-      const data = await response.json();
+      const data = await ordersAPI.updateOrderStatus(orderId, newStatus);
 
       if (data.success) {
         showNotification('success', 'Order status updated');
@@ -366,16 +353,12 @@ export default function OrdersPage() {
 
   const handleCancelOrder = async (orderId) => {
     try {
-      const response = await fetch(`/api/orders/${orderId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderStatus: 'cancelled' })
-      });
+      const data = await ordersAPI.updateOrderStatus(orderId, 'cancelled');
 
-      if (!response.ok) throw new Error('Failed to cancel order');
-
-      showNotification('success', 'Order cancelled');
-      await loadOrders();
+      if (data.success) {
+        showNotification('success', 'Order cancelled');
+        await loadOrders();
+      }
     } catch (err) {
       console.error('Error cancelling order:', err);
       showNotification('error', 'Failed to cancel order');
