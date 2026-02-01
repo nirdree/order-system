@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI } from '@/lib/api-client';
 import PageHeader from '@/components/PageHeader';
+import StatsCards from '@/components/StatsCards';
 
 // ============= TABLE DETAIL MODAL COMPONENT =============
 export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
@@ -1146,6 +1147,38 @@ const OrderManagementDashboard = () => {
     pendingOrders: orders.length,
     todayRevenue: todayRevenue
   };
+  const tableOrderStats = [
+    { 
+      icon: UtensilsCrossed, 
+      label: 'Tables', 
+      value: stats.totalTables, 
+      color: 'blue' 
+    },
+    { 
+      icon: Users, 
+      label: 'Occupied', 
+      value: stats.occupiedTables, 
+      color: 'red' 
+    },
+    { 
+      icon: CheckCircle, 
+      label: 'Active', 
+      value: stats.activeSessions, 
+      color: 'green' 
+    },
+    { 
+      icon: ShoppingBag, 
+      label: 'Pending', 
+      value: stats.pendingOrders, 
+      color: 'orange' 
+    },
+    { 
+      icon: IndianRupee, 
+      label: 'Today', 
+      value: `₹${stats.todayRevenue.toFixed(0)}`, 
+      color: 'purple' 
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-2 sm:p-3 md:p-4">
@@ -1166,90 +1199,7 @@ const OrderManagementDashboard = () => {
       />
 
       {/* Stats Cards */}
-      <div className="max-w-7xl mx-auto mb-3 md:mb-5">
-        <div className="grid grid-cols-5 sm:grid-cols-5 lg:grid-cols-5 gap-2 md:gap-3">
-          {/* Tables */}
-          <div className="bg-white/90 backdrop-blur border border-blue-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-blue-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <UtensilsCrossed className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
-              </div>
-
-              {/* label visible only on md+ */}
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-                Tables
-              </p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-blue-700">
-              {stats.totalTables}
-            </p>
-          </div>
-
-          {/* Occupied */}
-          <div className="bg-white/90 backdrop-blur border border-red-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-red-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <Users className="w-3 h-3 md:w-4 md:h-4 text-red-600" />
-              </div>
-
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-                Occupied
-              </p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-red-700">
-              {stats.occupiedTables}
-            </p>
-          </div>
-
-          {/* Active */}
-          <div className="bg-white/90 backdrop-blur border border-green-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-green-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
-              </div>
-
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-                Active
-              </p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-green-700">
-              {stats.activeSessions}
-            </p>
-          </div>
-
-          {/* Pending */}
-          <div className="bg-white/90 backdrop-blur border border-orange-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-orange-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <ShoppingBag className="w-3 h-3 md:w-4 md:h-4 text-orange-600" />
-              </div>
-
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-                Pending
-              </p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-orange-700">
-              {stats.pendingOrders}
-            </p>
-          </div>
-
-          {/* Today */}
-          <div className="bg-white/90 backdrop-blur border border-purple-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-purple-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <IndianRupee className="w-3 h-3 md:w-4 md:h-4 text-purple-600" />
-              </div>
-
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-                Today
-              </p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-purple-700">
-              ₹{stats.todayRevenue.toFixed(0)}
-            </p>
-          </div>
-        </div>
-      </div>
+     <StatsCards stats={tableOrderStats} columns={5} />
 
 
       {/* Filters & View Controls */}

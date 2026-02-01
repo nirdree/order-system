@@ -11,10 +11,11 @@ import { tablesAPI } from '@/lib/api-client';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
 import PageHeader from '@/components/PageHeader';
+import StatsCards from '@/components/StatsCards';
 
 const TableManagement = () => {
   const router = useRouter();
-    const { user, loading, logout } = useUser();
+  const { user, loading, logout } = useUser();
   const [tables, setTables] = useState([]);
   const [filteredTables, setFilteredTables] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,7 +40,7 @@ const TableManagement = () => {
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
-   useEffect(() => {
+  useEffect(() => {
     if (!loading) {
       if (!user || user.role === 'staff') {
         router.push('/login');
@@ -244,7 +245,7 @@ const TableManagement = () => {
         };
 
         const response = await tablesAPI.updateTable(currentTable._id, updateData);
-        
+
         if (response.success) {
           showNotification('success', 'Table updated successfully');
           await loadTables();
@@ -263,7 +264,7 @@ const TableManagement = () => {
         };
 
         const response = await tablesAPI.createTable(newTableData);
-        
+
         if (response.success) {
           showNotification('success', 'Table created successfully');
           await loadTables();
@@ -288,7 +289,7 @@ const TableManagement = () => {
     try {
       setIsLoading(true);
       const response = await tablesAPI.deleteTable(deleteConfirm.tableId);
-      
+
       if (response.success) {
         showNotification('success', 'Table deleted successfully');
         await loadTables();
@@ -312,7 +313,7 @@ const TableManagement = () => {
       const response = await tablesAPI.updateTable(tableId, {
         status: table.status === 'available' ? 'occupied' : 'available'
       });
-      
+
       if (response.success) {
         showNotification('success', `Table status updated successfully`);
         await loadTables();
@@ -326,12 +327,38 @@ const TableManagement = () => {
       setIsLoading(false);
     }
   };
+  const tableStats = [
+    {
+      icon: Users,
+      label: 'Total Tables',
+      value: tables.length,
+      color: 'blue'
+    },
+    {
+      icon: Users,
+      label: 'Available',
+      value: tables.filter(t => t.status === 'available').length,
+      color: 'red'
+    },
+    {
+      icon: CheckCircle,
+      label: 'Occupied',
+      value: tables.filter(t => t.status === 'occupied').length,
+      color: 'green'
+    },
+    {
+      icon: CheckCircle,
+      label: 'Capacity',
+      value: tables.reduce((sum, t) => sum + t.capacity, 0),
+      color: 'orange'
+    }
+  ];
 
   const generateQRCode = async (table) => {
     try {
-      const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL;
       const qrUrl = `${frontendUrl}/menu/${table._id}`;
-      
+
       const qrDataUrl = await QRCode.toDataURL(qrUrl, {
         width: 400,
         margin: 2,
@@ -407,11 +434,11 @@ const TableManagement = () => {
       const qrSize = 100;
       const qrX = (pageWidth - qrSize) / 2;
       const qrY = 65;
-      
+
       // QR Code background
       pdf.setFillColor(255, 255, 255);
       pdf.roundedRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10, 3, 3, 'F');
-      
+
       // QR Code border
       pdf.setDrawColor(251, 146, 60);
       pdf.setLineWidth(0.8);
@@ -428,7 +455,7 @@ const TableManagement = () => {
       const scanTextWidth = pdf.getTextWidth(scanText);
       pdf.text(scanText, (pageWidth - scanTextWidth) / 2, qrY + qrSize + 20);
 
-      
+
 
       // Instructions
       pdf.setFontSize(14);
@@ -514,7 +541,7 @@ const TableManagement = () => {
                 <X className="w-5 h-5 text-gray-600" />
               </button>
             </div>
-            
+
             <div className="text-center mb-4">
               <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-lg mb-3 border border-amber-200">
                 <img src={qrModal.qrDataUrl} alt="QR Code" className="w-full h-auto" />
@@ -558,136 +585,68 @@ const TableManagement = () => {
         showAddButton={true}
         onAddClick={openAddModal}
       />
-
       {/* Stats Cards */}
-      <div className="max-w-7xl mx-auto mb-3 md:mb-5">
-        <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-4 gap-2 md:gap-3">
-          {/* Tables */}
-          <div className="bg-white/90 backdrop-blur border border-blue-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-blue-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <UtensilsCrossed className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
-              </div>
-      
-              
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-                Total Tables
-              </p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-blue-700">
-              {tables.length}
-            </p>
-          </div>
-      
-          {/* Available */}
-          <div className="bg-white/90 backdrop-blur border border-red-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-red-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <Users className="w-3 h-3 md:w-4 md:h-4 text-red-600" />
-              </div>
-      
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-                Available
-              </p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-red-700">
-              {tables.filter(t => t.status === 'available').length}
-            </p>
-          </div>
-      
-          {/* Occupied */}
-          <div className="bg-white/90 backdrop-blur border border-green-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-green-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
-              </div>
-      
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-                Occupied
-              </p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-green-700">
-              {tables.filter(t => t.status === 'occupied').length}
-            </p>
-          </div>
-      
-          {/* Capacity */}
-          <div className="bg-white/90 backdrop-blur border border-orange-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-orange-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-orange-600" />
-              </div>
-      
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-                Capacity
-              </p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-orange-700">
-              {tables.reduce((sum, t) => sum + t.capacity, 0)}
-            </p>
-          </div>
-      
-        </div>
-      </div>
+      <StatsCards stats={tableStats} columns={4} />
+
 
       {/* Filters */}
       <div className="max-w-7xl mx-auto mb-3">
-  <div className="bg-white rounded-xl p-3 shadow-md border border-amber-100 space-y-3">
+        <div className="bg-white rounded-xl p-3 shadow-md border border-amber-100 space-y-3">
 
-    {/* ================= FILTER ROW ================= */}
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+          {/* ================= FILTER ROW ================= */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
 
-      {/* Search */}
-      <div className="md:col-span-6 relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-        <input
-          type="text"
-          placeholder="Search tables..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-9 pr-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500"
-        />
+            {/* Search */}
+            <div className="md:col-span-6 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search tables..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500"
+              />
+            </div>
+
+            {/* Status */}
+            <div className="md:col-span-3 relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full pl-9 pr-8 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500"
+              >
+                <option value="all">All Status</option>
+                <option value="available">Available</option>
+                <option value="occupied">Occupied</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            </div>
+
+            {/* Floor */}
+            <div className="md:col-span-3 relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <select
+                value={filterFloor}
+                onChange={(e) => setFilterFloor(e.target.value)}
+                className="w-full pl-9 pr-8 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500"
+              >
+                <option value="all">All Floors</option>
+                {uniqueFloors.map((floor) => (
+                  <option key={floor} value={floor}>
+                    Floor {floor}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            </div>
+
+          </div>
+
+
+
+        </div>
       </div>
-
-      {/* Status */}
-      <div className="md:col-span-3 relative">
-        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="w-full pl-9 pr-8 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500"
-        >
-          <option value="all">All Status</option>
-          <option value="available">Available</option>
-          <option value="occupied">Occupied</option>
-        </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-      </div>
-
-      {/* Floor */}
-      <div className="md:col-span-3 relative">
-        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-        <select
-          value={filterFloor}
-          onChange={(e) => setFilterFloor(e.target.value)}
-          className="w-full pl-9 pr-8 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500"
-        >
-          <option value="all">All Floors</option>
-          {uniqueFloors.map((floor) => (
-            <option key={floor} value={floor}>
-              Floor {floor}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-      </div>
-
-    </div>
-
-
-
-  </div>
-</div>
 
 
       {/* Tables Grid */}
@@ -738,9 +697,8 @@ const TableManagement = () => {
                   )}
                   <button
                     onClick={() => toggleTableStatus(table._id)}
-                    className={`w-full px-2 py-1.5 rounded-lg text-xs font-semibold ${
-                      table.status === 'available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    }`}
+                    className={`w-full px-2 py-1.5 rounded-lg text-xs font-semibold ${table.status === 'available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}
                   >
                     {table.status === 'available' ? 'Available' : 'Occupied'}
                   </button>

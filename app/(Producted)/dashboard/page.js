@@ -15,12 +15,14 @@ import {
   Star,
   Package,
   Activity,
-  ShoppingBagIcon
+  ShoppingBagIcon,
+  Wallet
 } from 'lucide-react';
 
 import dynamic from 'next/dynamic';
 import 'chart.js/auto';
 import PageHeader from '@/components/PageHeader';
+import StatsCards from '@/components/StatsCards';
 
 const Line = dynamic(() => import('react-chartjs-2').then((mod) => mod.Line), {
   ssr: false,
@@ -187,6 +189,44 @@ export default function OwnerDashboard() {
     completed: 1756,
     cancelled: 45
   });
+     const userStats = [
+    { 
+      icon: Wallet, 
+      label: 'Total Earnings', 
+      value: metrics.total, 
+      color: 'blue' 
+    },
+    { 
+      icon: Users, 
+      label: 'Pending Orders', 
+      value: metrics.pending,
+      color: 'red' 
+    },
+    { 
+      icon: CheckCircle, 
+      label: 'Preparing Orders', 
+      value: metrics.preparing, 
+      color: 'green' 
+    },
+    { 
+      icon: CheckCircle, 
+      label: 'Total Completed', 
+      value: metrics.completed, 
+      color: 'orange' 
+    },
+    { 
+      icon: CheckCircle, 
+      label: 'Ready Orders', 
+      value: metrics.ready, 
+      color: 'orange' 
+    },
+    { 
+      icon: CheckCircle, 
+      label: 'Cancelled Orders', 
+      value: metrics.cancelled, 
+      color: 'orange' 
+    }
+  ];
   const router = useRouter();
    useEffect(() => {
       if (!loading) {
@@ -197,6 +237,8 @@ export default function OwnerDashboard() {
        
       }
     }, [loading, user, router]);
+ 
+
 
   if (loading) {
     return (
@@ -219,77 +261,8 @@ export default function OwnerDashboard() {
 
 
 
+      <StatsCards stats={userStats} columns={6} />
 
-        {/* Stats Cards */}
-      <div className="max-w-7xl mx-auto mb-3 md:mb-5">
-        <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-4 gap-2 md:gap-3">
-          {/* Tables */}
-          <div className="bg-white/90 backdrop-blur border border-blue-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-blue-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <Users className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
-              </div>
-      
-              
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-                Total Tables
-              </p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-blue-700">
-             34
-            </p>
-          </div>
-      
-          {/* Available */}
-          <div className="bg-white/90 backdrop-blur border border-red-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-red-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <Users className="w-3 h-3 md:w-4 md:h-4 text-red-600" />
-              </div>
-      
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-                Available
-              </p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-red-700">
-              12
-            </p>
-          </div>
-      
-          {/* Occupied */}
-          <div className="bg-white/90 backdrop-blur border border-green-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-green-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
-              </div>
-      
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-                Occupied
-              </p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-green-700">
-             23
-            </p>
-          </div>
-      
-          {/* Capacity */}
-          <div className="bg-white/90 backdrop-blur border border-orange-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-orange-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-orange-600" />
-              </div>
-      
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">
-                Capacity
-              </p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-orange-700">
-              10
-            </p>
-          </div>
-      
-        </div>
-      </div>
 
         {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -329,26 +302,6 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* Category Performance */}
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">Category Performance</h3>
-          <div className="space-y-3">
-            {staticData.categoryBreakdown.map((category, index) => (
-              <div key={index}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-700">{category.category}</span>
-                  <span className="text-xs font-semibold text-gray-800">{category.percentage}%</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full"
-                    style={{ width: `${category.percentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
       </div>
     </div>

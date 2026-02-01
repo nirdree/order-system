@@ -11,6 +11,8 @@ const StatsCards = ({ stats, columns = 4 }) => {
         return 'grid-cols-4 sm:grid-cols-4 lg:grid-cols-4';
       case 5:
         return 'grid-cols-5 sm:grid-cols-5 lg:grid-cols-5';
+      case 6:
+        return 'grid-cols-6 sm:grid-cols-6 lg:grid-cols-6';
       case 7:
         return 'grid-cols-7 sm:grid-cols-7';
       default:

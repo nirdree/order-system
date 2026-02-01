@@ -31,6 +31,7 @@ import {
   Trash2
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import StatsCards from '@/components/StatsCards';
 
 // ============= ORDER DETAIL MODAL COMPONENT =============
 const OrderDetailModal = ({ order, isOpen, onClose, onStatusChange, onCancel }) => {
@@ -399,6 +400,15 @@ export default function OrdersPage() {
     completed: 'bg-gray-50 text-gray-700 border-gray-200',
     cancelled: 'bg-red-50 text-red-700 border-red-200'
   };
+  const orderStats = [
+    { icon: TrendingUp, label: 'Total', value: metrics.total, color: 'blue' },
+    { icon: Clock, label: 'Pending', value: metrics.pending, color: 'yellow' },
+    { icon: Loader, label: 'Preparing', value: metrics.preparing, color: 'blue' },
+    { icon: CheckCircle, label: 'Ready', value: metrics.ready, color: 'green' },
+    { icon: UtensilsCrossed, label: 'Served', value: metrics.served, color: 'purple' },
+    { icon: CheckCircle, label: 'Completed', value: metrics.completed, color: 'gray' },
+    { icon: XCircle, label: 'Cancelled', value: metrics.cancelled, color: 'red' }
+  ];
 
   if (loading) {
     return (
@@ -433,80 +443,7 @@ export default function OrdersPage() {
         isRefreshing={isLoading}
       />
 
-      {/* Stats Cards */}
-      <div className="max-w-7xl mx-auto mb-3 md:mb-5">
-        <div className="grid grid-cols-7 sm:grid-cols-7 gap-2 md:gap-3">
-          <div className="bg-white/90 backdrop-blur border border-blue-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow col-span-1">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-blue-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
-              </div>
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">Total</p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-blue-700">{metrics.total}</p>
-          </div>
-
-          <div className="bg-white/90 backdrop-blur border border-yellow-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow col-span-1">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-yellow-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <Clock className="w-3 h-3 md:w-4 md:h-4 text-yellow-600" />
-              </div>
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">Pending</p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-yellow-700">{metrics.pending}</p>
-          </div>
-
-          <div className="bg-white/90 backdrop-blur border border-blue-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow col-span-1">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-blue-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <Loader className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
-              </div>
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">Preparing</p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-blue-700">{metrics.preparing}</p>
-          </div>
-
-          <div className="bg-white/90 backdrop-blur border border-green-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow col-span-1">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-green-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
-              </div>
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">Ready</p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-green-700">{metrics.ready}</p>
-          </div>
-
-          <div className="bg-white/90 backdrop-blur border border-purple-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow col-span-1">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-purple-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <UtensilsCrossed className="w-3 h-3 md:w-4 md:h-4 text-purple-600" />
-              </div>
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">Served</p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-purple-700">{metrics.served}</p>
-          </div>
-
-          <div className="bg-white/90 backdrop-blur border border-gray-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow col-span-1">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-gray-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-gray-600" />
-              </div>
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">Completed</p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-gray-700">{metrics.completed}</p>
-          </div>
-
-          <div className="bg-white/90 backdrop-blur border border-red-200 rounded-lg md:rounded-xl p-2 md:p-3 shadow col-span-1">
-            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-1.5">
-              <div className="bg-red-100 p-1 md:p-1.5 rounded-lg flex-shrink-0">
-                <XCircle className="w-3 h-3 md:w-4 md:h-4 text-red-600" />
-              </div>
-              <p className="hidden md:block text-[10px] md:text-xs font-semibold text-gray-600">Cancelled</p>
-            </div>
-            <p className="text-lg md:text-xl font-bold text-red-700">{metrics.cancelled}</p>
-          </div>
-        </div>
-      </div>
+       <StatsCards stats={orderStats} columns={7} />
 
       {/* Filters & View Controls */}
       <div className="max-w-7xl mx-auto mb-3 md:mb-5">
