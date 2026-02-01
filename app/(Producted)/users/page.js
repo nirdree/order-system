@@ -3,13 +3,15 @@ import React, { useState, useEffect } from 'react';
 import {
   Users, Plus, Edit, Trash2, Search, Filter, X, Eye, EyeOff,
   Save, UserPlus, Mail, Phone, Calendar, DollarSign,
-  CheckCircle, AlertCircle, Loader, ChevronDown, User
+  CheckCircle, AlertCircle, Loader, ChevronDown, User,
+  LayoutGrid, List, RotateCcw, MapPin, IndianRupee
 } from 'lucide-react';
 import { usersAPI } from '@/lib/api-client';
 import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
 import StatsCards from '@/components/StatsCards';
+
 const UserManagement = () => {
   const router = useRouter();
   const { user, loading, logout } = useUser();
@@ -26,6 +28,10 @@ const UserManagement = () => {
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, userId: null });
   const [isLoading, setIsLoading] = useState(false);
   const currentUserRole = user?.role || '';
+
+  // View Mode
+  const [viewMode, setViewMode] = useState('table'); // 'grid' or 'table'
+  const [gridColumns, setGridColumns] = useState(3); // 1, 2, 3, 4 columns
 
   const [formData, setFormData] = useState({
     name: '',
@@ -52,7 +58,6 @@ const UserManagement = () => {
   }, [loading, user, router]);
 
   useEffect(() => {
-   
     filterUsers();
   }, [searchTerm, filterRole, filterStatus, users]);
 
@@ -98,6 +103,12 @@ const UserManagement = () => {
     setTimeout(() => {
       setNotification({ show: false, type: '', message: '' });
     }, 3000);
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setFilterRole('all');
+    setFilterStatus('all');
   };
 
   const validateEmail = (email) => {
@@ -399,39 +410,43 @@ const UserManagement = () => {
       color: 'blue' 
     },
     { 
-      icon: Users, 
+      icon: CheckCircle, 
       label: 'Active Users', 
       value: users.filter(u => u.isActive).length, 
-      color: 'red' 
-    },
-    { 
-      icon: CheckCircle, 
-      label: 'Total Managers', 
-      value: users.filter(u => u.role === 'manager').length, 
       color: 'green' 
     },
     { 
-      icon: CheckCircle, 
-      label: 'Total Staff', 
-      value: users.filter(u => u.role === 'staff').length, 
+      icon: User, 
+      label: 'Managers', 
+      value: users.filter(u => u.role === 'manager').length, 
       color: 'orange' 
+    },
+    { 
+      icon: User, 
+      label: 'Staff', 
+      value: users.filter(u => u.role === 'staff').length, 
+      color: 'red' 
     }
   ];
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader className="w-8 h-8 animate-spin text-amber-600" />
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50">
+        <div className="text-center">
+          <Loader className="w-8 h-8 md:w-10 md:h-10 text-amber-600 animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-3 sm:p-4">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-2 sm:p-3 md:p-4">
       {/* Notification */}
       {notification.show && (
-        <div className={`fixed top-3 right-3 z-50 animate-slide-in ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 text-sm`}>
-          {notification.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-          <span className="font-medium">{notification.message}</span>
+        <div className={`fixed top-3 right-3 z-50 animate-slide-in ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white px-3 md:px-5 py-2 md:py-3 rounded-xl shadow-lg flex items-center gap-2 text-xs md:text-sm max-w-sm`}>
+          {notification.type === 'success' ? <CheckCircle className="w-4 h-4 md:w-5 md:h-5" /> : <AlertCircle className="w-4 h-4 md:w-5 md:h-5" />}
+          <span className="font-semibold">{notification.message}</span>
         </div>
       )}
 
@@ -459,7 +474,7 @@ const UserManagement = () => {
       )}
 
       {/* Header */}
-       <PageHeader
+      <PageHeader
         icon={Users}
         title="User Management"
         subtitle="Manage staff & team"
@@ -468,215 +483,324 @@ const UserManagement = () => {
         showAddButtonCondition={user.role === 'owner'}
       />
 
-    {/* Stats Cards */}
+      {/* Stats Cards */}
       <StatsCards stats={userStats} columns={4} />
-{/* Filters  */}
-<div className="max-w-7xl mx-auto mb-3">
-  <div className="bg-white rounded-xl p-3 shadow-md border border-amber-100 space-y-3">
 
-    {/* ================= FILTER ROW ================= */}
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+      {/* Filters & View Controls */}
+      <div className="max-w-7xl mx-auto mb-3 md:mb-5">
+        <div className="bg-white/90 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4 shadow-lg border border-amber-100 space-y-3">
+          {/* Top Row: Title & View Controls */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3">
+            <h2 className="text-sm md:text-base font-bold text-gray-900">Users ({filteredUsers.length})</h2>
 
-      {/* Search */}
-      <div className="md:col-span-6 relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-        <input
-          type="text"
-          placeholder="Search users..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-9 pr-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500"
-        />
-      </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-1.5 md:p-2 rounded transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                  title="Grid view"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
+                </button>
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`p-1.5 md:p-2 rounded transition-all ${viewMode === 'table' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                  title="Table view"
+                >
+                  <List className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
+                </button>
+              </div>
 
-      {/* Role */}
-      <div className="md:col-span-3 relative">
-        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-        <select
-          value={filterRole}
-          onChange={(e) => setFilterRole(e.target.value)}
-          className="w-full pl-9 pr-8 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500"
-        >
-          <option value="all">All Roles</option>
-          <option value="owner">Owner</option>
-          <option value="manager">Manager</option>
-          <option value="staff">Staff</option>
-        </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-      </div>
-
-      {/* Status */}
-      <div className="md:col-span-3 relative">
-        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="w-full pl-9 pr-8 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500"
-        >
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-      </div>
-
-    </div>
-
-
-  </div>
-</div>
-
-      {/* Users List - Mobile Optimized */}
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-xl shadow-md border border-amber-100 overflow-hidden">
-          {/* Desktop Table */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gradient-to-r from-amber-500 to-orange-600">
-                <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-white">User</th>
-                  <th className="px-4 py-3 text-left font-semibold text-white">Role</th>
-                  <th className="px-4 py-3 text-left font-semibold text-white">Contact</th>
-                  <th className="px-4 py-3 text-left font-semibold text-white">Salary</th>
-                  <th className="px-4 py-3 text-left font-semibold text-white">Joined</th>
-                  <th className="px-4 py-3 text-left font-semibold text-white">Status</th>
-                  <th className="px-4 py-3 text-center font-semibold text-white">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan="7" className="px-4 py-8 text-center">
-                      <Users className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-600 text-sm">No users found</p>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <tr key={user._id} className="hover:bg-amber-50/50">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-1.5 rounded-lg">
-                            <User className="w-4 h-4 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{user.name}</p>
-                            <p className="text-xs text-gray-500">{user.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`${getRoleBadgeColor(user.role)} text-white px-2 py-1 rounded-full text-xs font-semibold uppercase`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-700">{user.phone || 'N/A'}</td>
-                      <td className="px-4 py-3 font-semibold text-gray-900">₹{user.salary?.toLocaleString() || '0'}</td>
-                      <td className="px-4 py-3 text-gray-700">{new Date(user.joiningDate).toLocaleDateString('en-IN')}</td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => toggleUserStatus(user._id)}
-                          disabled={user.role === 'owner'}
-                          className={`px-2 py-1 rounded-full text-xs font-semibold ${user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} ${user.role === 'owner' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                          {user.isActive ? 'Active' : 'Inactive'}
-                        </button>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-1">
-                          <button onClick={() => openEditModal(user)} className="p-1.5 bg-blue-100 text-blue-600 rounded-lg">
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          {currentUserRole === 'owner' && (
-                          <button
-                            onClick={() => handleDelete(user._id)}
-                            disabled={user.role === 'owner'}
-                            className={`p-1.5 rounded-lg ${user.role === 'owner' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-100 text-red-600'}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                          )}
-                          
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+              {/* Grid Column Selector - Only show in grid mode */}
+              {viewMode === 'grid' && (
+                <div className="hidden lg:flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+                  <button
+                    onClick={() => setGridColumns(1)}
+                    className={`p-1.5 rounded transition-all ${gridColumns === 1 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                    title="1 column"
+                  >
+                    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <rect x="3" y="3" width="18" height="6" strokeWidth="2" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setGridColumns(2)}
+                    className={`p-1.5 rounded transition-all ${gridColumns === 2 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                    title="2 columns"
+                  >
+                    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <rect x="2" y="3" width="9" height="6" strokeWidth="2" />
+                      <rect x="13" y="3" width="9" height="6" strokeWidth="2" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setGridColumns(3)}
+                    className={`p-1.5 rounded transition-all ${gridColumns === 3 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                    title="3 columns"
+                  >
+                    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <rect x="2" y="3" width="5.5" height="6" strokeWidth="2" />
+                      <rect x="9.25" y="3" width="5.5" height="6" strokeWidth="2" />
+                      <rect x="16.5" y="3" width="5.5" height="6" strokeWidth="2" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setGridColumns(4)}
+                    className={`p-1.5 rounded transition-all ${gridColumns === 4 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                    title="4 columns"
+                  >
+                    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <rect x="2" y="3" width="4" height="4" strokeWidth="2" />
+                      <rect x="8" y="3" width="4" height="4" strokeWidth="2" />
+                      <rect x="14" y="3" width="4" height="4" strokeWidth="2" />
+                      <rect x="20" y="3" width="2" height="4" strokeWidth="2" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Mobile Cards */}
-          <div className="md:hidden divide-y divide-gray-100">
-            {filteredUsers.length === 0 ? (
-              <div className="p-8 text-center">
-                <Users className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600 text-sm">No users found</p>
-              </div>
-            ) : (
-              filteredUsers.map((user) => (
-                <div key={user._id} className="p-3">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-1.5 rounded-lg flex-shrink-0">
-                        <User className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm truncate">{user.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                      </div>
-                    </div>
-                    <span className={`${getRoleBadgeColor(user.role)} text-white px-2 py-0.5 rounded-full text-xs font-semibold uppercase flex-shrink-0 ml-2`}>
-                      {user.role}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs mb-2">
-                    <div>
-                      <p className="text-gray-500">Phone</p>
-                      <p className="font-medium text-gray-900">{user.phone || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Salary</p>
-                      <p className="font-semibold text-gray-900">₹{user.salary?.toLocaleString() || '0'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Joined</p>
-                      <p className="font-medium text-gray-900">{new Date(user.joiningDate).toLocaleDateString('en-IN')}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Status</p>
-                      <button
-                        onClick={() => toggleUserStatus(user._id)}
-                        disabled={user.role === 'owner'}
-                        className={`px-2 py-0.5 rounded-full text-xs font-semibold ${user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} ${user.role === 'owner' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      >
-                        {user.isActive ? 'Active' : 'Inactive'}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => openEditModal(user)} className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium">
-                      <Edit className="w-3.5 h-3.5" />Edit
-                    </button>
-                    {currentUserRole === 'owner' && (
-                      <button
-                      onClick={() => handleDelete(user._id)}
-                      disabled={user.role === 'owner'}
-                      className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium ${user.role === 'owner' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-50 text-red-600'}`}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />Delete
-                    </button>
-                    )}
-                    
-                  </div>
-                </div>
-              ))
-            )}
+          {/* Bottom Row: Filters */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+            {/* Search */}
+            <div className="relative sm:col-span-2">
+              <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-8 md:pl-9 pr-2.5 md:pr-3 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+              />
+            </div>
+
+            {/* Role Filter */}
+            <div className="relative">
+              <Filter className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
+              <select
+                value={filterRole}
+                onChange={(e) => setFilterRole(e.target.value)}
+                className="w-full pl-8 md:pl-9 pr-8 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer"
+              >
+                <option value="all">All Roles</option>
+                <option value="owner">Owner</option>
+                <option value="manager">Manager</option>
+                <option value="staff">Staff</option>
+              </select>
+              <ChevronDown className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 pointer-events-none" />
+            </div>
+
+            {/* Status Filter */}
+            <div className="relative">
+              <Filter className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full pl-8 md:pl-9 pr-8 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <ChevronDown className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 pointer-events-none" />
+            </div>
+
+            {/* Reset Button */}
+            <button
+              onClick={handleResetFilters}
+              className="px-3 py-2 md:py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center gap-1.5 transition text-xs md:text-sm text-gray-700 font-semibold"
+            >
+              <RotateCcw className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              Reset
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Users Display */}
+      <div className="max-w-7xl mx-auto">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-48">
+            <Loader className="w-6 h-6 md:w-7 md:h-7 text-amber-600 animate-spin" />
+          </div>
+        ) : filteredUsers.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-xl shadow-md border border-amber-100">
+            <Users className="w-10 h-10 md:w-12 md:h-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-sm md:text-base text-gray-600 font-medium">No users found</p>
+            <p className="text-xs md:text-sm text-gray-500 mt-1">Try adjusting your filters</p>
+          </div>
+        ) : viewMode === 'grid' ? (
+          // Grid View
+          <div className={`grid gap-2 md:gap-3 ${
+            gridColumns === 1 ? 'grid-cols-1' :
+            gridColumns === 2 ? 'grid-cols-1 md:grid-cols-2' :
+            gridColumns === 3 ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' :
+            gridColumns === 4 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' :
+            'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+          }`}>
+            {filteredUsers.map((userData) => (
+              <div key={userData._id} className="bg-white rounded-xl border-2 border-gray-200 p-3 md:p-4 shadow-md hover:shadow-lg transition-all">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-2 rounded-lg flex-shrink-0">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-sm md:text-base font-bold text-gray-900 truncate">{userData.name}</h3>
+                      <p className="text-[10px] md:text-xs text-gray-500 truncate">{userData.email}</p>
+                    </div>
+                  </div>
+                  <span className={`${getRoleBadgeColor(userData.role)} text-white px-2 py-1 rounded-full text-[10px] md:text-xs font-semibold uppercase flex-shrink-0 ml-2`}>
+                    {userData.role}
+                  </span>
+                </div>
+
+                {/* Details */}
+                <div className="space-y-2 mb-3">
+                  <div className="flex items-center gap-1.5 text-gray-700">
+                    <Phone className="w-3 h-3 md:w-3.5 md:h-3.5 text-gray-400" />
+                    <span className="text-[10px] md:text-xs">{userData.phone || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-gray-700">
+                    <IndianRupee className="w-3 h-3 md:w-3.5 md:h-3.5 text-gray-400" />
+                    <span className="text-[10px] md:text-xs">Salary: <strong>₹{userData.salary?.toLocaleString() || '0'}</strong></span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-gray-700">
+                    <Calendar className="w-3 h-3 md:w-3.5 md:h-3.5 text-gray-400" />
+                    <span className="text-[10px] md:text-xs">Joined: {new Date(userData.joiningDate).toLocaleDateString('en-IN')}</span>
+                  </div>
+                  <button
+                    onClick={() => toggleUserStatus(userData._id)}
+                    disabled={userData.role === 'owner'}
+                    className={`w-full px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border ${userData.isActive ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'} ${userData.role === 'owner' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {userData.isActive ? 'Active' : 'Inactive'}
+                  </button>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2 pt-3 border-t border-gray-100">
+                  <button onClick={() => openEditModal(userData)} className="flex-1 px-2 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium flex items-center justify-center gap-1">
+                    <Edit className="w-3 h-3 md:w-3.5 md:h-3.5" />Edit
+                  </button>
+                  {currentUserRole === 'owner' && (
+                    <button
+                      onClick={() => handleDelete(userData._id)}
+                      disabled={userData.role === 'owner'}
+                      className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-center gap-1 ${userData.role === 'owner' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-50 text-red-600'}`}
+                    >
+                      <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />Delete
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          // Table View
+          <div className="bg-white rounded-xl shadow-md border border-amber-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200">
+                  <tr>
+                    <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700">User</th>
+                    <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden sm:table-cell">Role</th>
+                    <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden md:table-cell">Contact</th>
+                    <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden lg:table-cell">Salary</th>
+                    <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden lg:table-cell">Joined</th>
+                    <th className="px-3 md:px-4 py-2.5 md:py-3 text-center text-xs md:text-sm font-bold text-gray-700">Status</th>
+                    <th className="px-3 md:px-4 py-2.5 md:py-3 text-center text-xs md:text-sm font-bold text-gray-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredUsers.map((userData) => (
+                    <tr key={userData._id} className="hover:bg-amber-50/50 transition-colors">
+                      {/* User Info */}
+                      <td className="px-3 md:px-4 py-2 md:py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-1.5 rounded-lg">
+                            <User className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900 text-xs md:text-sm">{userData.name}</p>
+                            <p className="text-[10px] md:text-xs text-gray-500">{userData.email}</p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Role */}
+                      <td className="px-3 md:px-4 py-2 md:py-3 hidden sm:table-cell">
+                        <span className={`${getRoleBadgeColor(userData.role)} text-white px-2 py-1 rounded-full text-[10px] md:text-xs font-semibold uppercase`}>
+                          {userData.role}
+                        </span>
+                      </td>
+
+                      {/* Contact */}
+                      <td className="px-3 md:px-4 py-2 md:py-3 hidden md:table-cell">
+                        <span className="text-xs md:text-sm text-gray-700">{userData.phone || 'N/A'}</span>
+                      </td>
+
+                      {/* Salary */}
+                      <td className="px-3 md:px-4 py-2 md:py-3 hidden lg:table-cell">
+                        <div className="flex items-center gap-0.5 md:gap-1">
+                          <IndianRupee className="w-3 h-3 md:w-3.5 md:h-3.5 text-gray-500" />
+                          <span className="text-xs md:text-sm font-semibold text-gray-900">{userData.salary?.toLocaleString() || '0'}</span>
+                        </div>
+                      </td>
+
+                      {/* Joined */}
+                      <td className="px-3 md:px-4 py-2 md:py-3 hidden lg:table-cell">
+                        <span className="text-xs md:text-sm text-gray-700">{new Date(userData.joiningDate).toLocaleDateString('en-IN')}</span>
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-3 md:px-4 py-2 md:py-3">
+                        <div className="flex justify-center">
+                          <button
+                            onClick={() => toggleUserStatus(userData._id)}
+                            disabled={userData.role === 'owner'}
+                            className={`px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg font-bold text-[10px] md:text-xs ${userData.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} ${userData.role === 'owner' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            {userData.isActive ? 'Active' : 'Inactive'}
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-3 md:px-4 py-2 md:py-3">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => openEditModal(userData)}
+                            className="p-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
+                            title="Edit"
+                          >
+                            <Edit className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                          </button>
+                          {currentUserRole === 'owner' && (
+                            <button
+                              onClick={() => handleDelete(userData._id)}
+                              disabled={userData.role === 'owner'}
+                              className={`p-1.5 rounded-lg ${userData.role === 'owner' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}
+                              title="Delete"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="bg-white rounded-t-xl sm:rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -811,7 +935,7 @@ const UserManagement = () => {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Salary (₹)</label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
                         type="number"
                         name="salary"
@@ -884,7 +1008,7 @@ const UserManagement = () => {
           from { transform: translateX(100%); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
         }
-        .animate-slide-in { animation: slide-in 0.3s; }
+        .animate-slide-in { animation: slide-in 0.3s ease-out; }
       `}</style>
     </div>
   );
