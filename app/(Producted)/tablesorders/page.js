@@ -10,6 +10,7 @@ import {
 import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI } from '@/lib/api-client';
 import PageHeader from '@/components/PageHeader';
 import StatsCards from '@/components/StatsCards';
+import ViewControls from '@/components/ViewControls';
 
 // ============= TABLE DETAIL MODAL COMPONENT =============
 export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
@@ -1203,147 +1204,45 @@ const OrderManagementDashboard = () => {
 
 
       {/* Filters & View Controls */}
-      <div className="max-w-7xl mx-auto mb-3 md:mb-5">
-        <div className="bg-white/90 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4 shadow-lg border border-amber-100 space-y-3">
-
-          {/* Top Row: Search & View Controls */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3">
-            <h2 className="text-sm md:text-base font-bold text-gray-900">Tables ({filteredTables.length})</h2>
-
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              {/* View Mode Toggle */}
-              <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-1.5 md:p-2 rounded transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                  title="Grid view"
-                >
-                  <LayoutGrid className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
-                </button>
-                <button
-                  onClick={() => setViewMode('table')}
-                  className={`p-1.5 md:p-2 rounded transition-all ${viewMode === 'table' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                  title="Table view"
-                >
-                  <List className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
-                </button>
-              </div>
-
-              {/* Grid Column Selector - Only show in grid mode */}
-              {viewMode === 'grid' && (
-                <div className="hidden lg:flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-                  <button
-                    onClick={() => setGridColumns(2)}
-                    className={`p-1.5 rounded transition-all ${gridColumns === 2 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                    title="2 columns"
-                  >
-                    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="3" y="3" width="8" height="8" strokeWidth="2" />
-                      <rect x="13" y="3" width="8" height="8" strokeWidth="2" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setGridColumns(3)}
-                    className={`p-1.5 rounded transition-all ${gridColumns === 3 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                    title="3 columns"
-                  >
-                    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="2" y="3" width="5.5" height="5.5" strokeWidth="2" />
-                      <rect x="9.25" y="3" width="5.5" height="5.5" strokeWidth="2" />
-                      <rect x="16.5" y="3" width="5.5" height="5.5" strokeWidth="2" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setGridColumns(4)}
-                    className={`p-1.5 rounded transition-all ${gridColumns === 4 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                    title="4 columns"
-                  >
-                    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="2" y="3" width="4" height="4" strokeWidth="2" />
-                      <rect x="8" y="3" width="4" height="4" strokeWidth="2" />
-                      <rect x="14" y="3" width="4" height="4" strokeWidth="2" />
-                      <rect x="20" y="3" width="2" height="4" strokeWidth="2" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setGridColumns(5)}
-                    className={`p-1.5 rounded transition-all ${gridColumns === 5 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                    title="5 columns"
-                  >
-                    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="2" y="4" width="3" height="3" strokeWidth="2" />
-                      <rect x="6.5" y="4" width="3" height="3" strokeWidth="2" />
-                      <rect x="11" y="4" width="3" height="3" strokeWidth="2" />
-                      <rect x="15.5" y="4" width="3" height="3" strokeWidth="2" />
-                      <rect x="20" y="4" width="2" height="3" strokeWidth="2" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setGridColumns(6)}
-                    className={`p-1.5 rounded transition-all ${gridColumns === 6 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                    title="6 columns"
-                  >
-                    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="2" y="4" width="2.5" height="2.5" strokeWidth="2" />
-                      <rect x="5.5" y="4" width="2.5" height="2.5" strokeWidth="2" />
-                      <rect x="9" y="4" width="2.5" height="2.5" strokeWidth="2" />
-                      <rect x="12.5" y="4" width="2.5" height="2.5" strokeWidth="2" />
-                      <rect x="16" y="4" width="2.5" height="2.5" strokeWidth="2" />
-                      <rect x="19.5" y="4" width="2.5" height="2.5" strokeWidth="2" />
-                    </svg>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Bottom Row: Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
-              <input
-                type="text"
-                placeholder="Search tables..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 md:pl-9 pr-2.5 md:pr-3 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
-              />
-            </div>
-
-            {/* Status Filter */}
-            <div className="relative">
-              <Filter className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full pl-8 md:pl-9 pr-8 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer"
-              >
-                <option value="all">All Status</option>
-                <option value="available">Available</option>
-                <option value="occupied">Occupied</option>
-              </select>
-              <ChevronDown className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 pointer-events-none" />
-            </div>
-
-            {/* Floor Filter */}
-            <div className="relative">
-              <Filter className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
-              <select
-                value={filterFloor}
-                onChange={(e) => setFilterFloor(e.target.value)}
-                className="w-full pl-8 md:pl-9 pr-8 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer"
-              >
-                <option value="all">All Floors</option>
-                {uniqueFloors.map(floor => (
-                  <option key={floor} value={floor}>Floor {floor}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-        </div>
-      </div>
+      <ViewControls
+        title="Tables"
+        itemCount={filteredTables.length}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        gridColumns={gridColumns}
+        onGridColumnsChange={setGridColumns}
+        availableColumns={[2, 3, 4, 5, 6]}
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search tables..."
+        filters={[
+          {
+            type: 'select',
+            icon: Filter,
+            value: filterStatus,
+            onChange: setFilterStatus,
+            options: [
+              { value: 'all', label: 'All Status' },
+              { value: 'available', label: 'Available' },
+              { value: 'occupied', label: 'Occupied' }
+            ]
+          },
+          {
+            type: 'select',
+            icon: Filter,
+            value: filterFloor,
+            onChange: setFilterFloor,
+            options: [
+              { value: 'all', label: 'All Floors' },
+              ...uniqueFloors.map(floor => ({ 
+                value: floor, 
+                label: `Floor ${floor}` 
+              }))
+            ]
+          }
+        ]}
+        showReset={false}
+      />
 
       {/* Tables Display */}
       <div className="max-w-7xl mx-auto">

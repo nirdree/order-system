@@ -11,6 +11,7 @@ import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
 import StatsCards from '@/components/StatsCards';
+import ViewControls from '@/components/ViewControls';
 
 const UserManagement = () => {
   const router = useRouter();
@@ -487,137 +488,45 @@ const UserManagement = () => {
       <StatsCards stats={userStats} columns={4} />
 
       {/* Filters & View Controls */}
-      <div className="max-w-7xl mx-auto mb-3 md:mb-5">
-        <div className="bg-white/90 backdrop-blur rounded-xl md:rounded-2xl p-3 md:p-4 shadow-lg border border-amber-100 space-y-3">
-          {/* Top Row: Title & View Controls */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3">
-            <h2 className="text-sm md:text-base font-bold text-gray-900">Users ({filteredUsers.length})</h2>
-
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              {/* View Mode Toggle */}
-              <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-1.5 md:p-2 rounded transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                  title="Grid view"
-                >
-                  <LayoutGrid className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
-                </button>
-                <button
-                  onClick={() => setViewMode('table')}
-                  className={`p-1.5 md:p-2 rounded transition-all ${viewMode === 'table' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                  title="Table view"
-                >
-                  <List className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
-                </button>
-              </div>
-
-              {/* Grid Column Selector - Only show in grid mode */}
-              {viewMode === 'grid' && (
-                <div className="hidden lg:flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-                  <button
-                    onClick={() => setGridColumns(1)}
-                    className={`p-1.5 rounded transition-all ${gridColumns === 1 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                    title="1 column"
-                  >
-                    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="3" y="3" width="18" height="6" strokeWidth="2" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setGridColumns(2)}
-                    className={`p-1.5 rounded transition-all ${gridColumns === 2 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                    title="2 columns"
-                  >
-                    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="2" y="3" width="9" height="6" strokeWidth="2" />
-                      <rect x="13" y="3" width="9" height="6" strokeWidth="2" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setGridColumns(3)}
-                    className={`p-1.5 rounded transition-all ${gridColumns === 3 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                    title="3 columns"
-                  >
-                    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="2" y="3" width="5.5" height="6" strokeWidth="2" />
-                      <rect x="9.25" y="3" width="5.5" height="6" strokeWidth="2" />
-                      <rect x="16.5" y="3" width="5.5" height="6" strokeWidth="2" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setGridColumns(4)}
-                    className={`p-1.5 rounded transition-all ${gridColumns === 4 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                    title="4 columns"
-                  >
-                    <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="2" y="3" width="4" height="4" strokeWidth="2" />
-                      <rect x="8" y="3" width="4" height="4" strokeWidth="2" />
-                      <rect x="14" y="3" width="4" height="4" strokeWidth="2" />
-                      <rect x="20" y="3" width="2" height="4" strokeWidth="2" />
-                    </svg>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Bottom Row: Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-            {/* Search */}
-            <div className="relative sm:col-span-2">
-              <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
-              <input
-                type="text"
-                placeholder="Search users..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 md:pl-9 pr-2.5 md:pr-3 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
-              />
-            </div>
-
-            {/* Role Filter */}
-            <div className="relative">
-              <Filter className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
-              <select
-                value={filterRole}
-                onChange={(e) => setFilterRole(e.target.value)}
-                className="w-full pl-8 md:pl-9 pr-8 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer"
-              >
-                <option value="all">All Roles</option>
-                <option value="owner">Owner</option>
-                <option value="manager">Manager</option>
-                <option value="staff">Staff</option>
-              </select>
-              <ChevronDown className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 pointer-events-none" />
-            </div>
-
-            {/* Status Filter */}
-            <div className="relative">
-              <Filter className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full pl-8 md:pl-9 pr-8 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer"
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-              <ChevronDown className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 pointer-events-none" />
-            </div>
-
-            {/* Reset Button */}
-            <button
-              onClick={handleResetFilters}
-              className="px-3 py-2 md:py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center gap-1.5 transition text-xs md:text-sm text-gray-700 font-semibold"
-            >
-              <RotateCcw className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              Reset
-            </button>
-          </div>
-        </div>
-      </div>
+      <ViewControls
+        title="Users"
+        itemCount={filteredUsers.length}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        gridColumns={gridColumns}
+        onGridColumnsChange={setGridColumns}
+        availableColumns={[1, 2, 3, 4]}
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search users..."
+        searchColSpan={2}
+        filters={[
+          {
+            type: 'select',
+            icon: Filter,
+            value: filterRole,
+            onChange: setFilterRole,
+            options: [
+              { value: 'all', label: 'All Roles' },
+              { value: 'owner', label: 'Owner' },
+              { value: 'manager', label: 'Manager' },
+              { value: 'staff', label: 'Staff' }
+            ]
+          },
+          {
+            type: 'select',
+            icon: Filter,
+            value: filterStatus,
+            onChange: setFilterStatus,
+            options: [
+              { value: 'all', label: 'All Status' },
+              { value: 'active', label: 'Active' },
+              { value: 'inactive', label: 'Inactive' }
+            ]
+          }
+        ]}
+        onReset={handleResetFilters}
+      />
 
       {/* Users Display */}
       <div className="max-w-7xl mx-auto">

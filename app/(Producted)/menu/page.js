@@ -13,6 +13,7 @@ import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
 import StatsCards from '@/components/StatsCards';
+import ViewControls from '@/components/ViewControls';
 
 // Cloudinary configuration
 const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
@@ -29,7 +30,7 @@ const iconOptions = [
 
 const MenuDashboard = () => {
   const router = useRouter();
-    const { user, loading, logout } = useUser();
+  const { user, loading, logout } = useUser();
   const [activeTab, setActiveTab] = useState('menu');
   const [viewMode, setViewMode] = useState('table'); // 'grid' or 'table'
   const [gridColumns, setGridColumns] = useState(4); // 2, 3, 4, or 5 columns
@@ -88,15 +89,15 @@ const MenuDashboard = () => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
-   useEffect(() => {
-      if (!loading) {
-        if (!user || user.role === 'staff') {
-          router.push('/login');
-          return;
-        }
-        
+  useEffect(() => {
+    if (!loading) {
+      if (!user || user.role === 'staff') {
+        router.push('/login');
+        return;
       }
-    }, [loading, user, router]);
+
+    }
+  }, [loading, user, router]);
 
   useEffect(() => {
     loadCategories();
@@ -615,39 +616,45 @@ const MenuDashboard = () => {
     return iconOption ? iconOption.Icon : Coffee;
   };
   const menuStats = [
-    { 
-      icon: UtensilsCrossed, 
-      label: 'Total Items', 
-      value: menuItems.length, 
-      color: 'blue' 
+    {
+      icon: UtensilsCrossed,
+      label: 'Total Items',
+      value: menuItems.length,
+      color: 'blue'
     },
-    { 
-      icon: Users, 
-      label: 'Available', 
-      value: menuItems.filter(i => i.available).length, 
-      color: 'red' 
+    {
+      icon: Users,
+      label: 'Available',
+      value: menuItems.filter(i => i.available).length,
+      color: 'red'
     },
-    { 
-      icon: CheckCircle, 
-      label: 'Best Sellers', 
-      value: menuItems.filter(i => i.mostSell).length, 
-      color: 'green' 
+    {
+      icon: CheckCircle,
+      label: 'Best Sellers',
+      value: menuItems.filter(i => i.mostSell).length,
+      color: 'green'
     },
-    { 
-      icon: CheckCircle, 
-      label: 'Categories', 
-      value: categories.length, 
-      color: 'orange' 
+    {
+      icon: CheckCircle,
+      label: 'Categories',
+      value: categories.length,
+      color: 'orange'
     }
   ];
   const categoryStats = [
-    { 
-      icon: UtensilsCrossed, 
-      label: 'Total Categories', 
-      value: filteredCategories.length, 
-      color: 'blue' 
+    {
+      icon: UtensilsCrossed,
+      label: 'Total Categories',
+      value: filteredCategories.length,
+      color: 'blue'
     }
   ];
+  const handleResetFilters = () => {
+    setSearchTermItems('');
+    setFilterCategory('all');
+    setFilterAvailable('all');
+    setFilterMostSell('all');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-2 sm:p-3 md:p-4">
@@ -683,7 +690,7 @@ const MenuDashboard = () => {
       )}
 
       {/* Header */}
-     <PageHeader
+      <PageHeader
         icon={LayoutDashboard}
         title="Menu Dashboard"
         subtitle="Manage menu & categories"
@@ -724,145 +731,54 @@ const MenuDashboard = () => {
       {activeTab === 'menu' && (
         <>
 
-{/* Stats Cards */}
- <StatsCards stats={menuStats} columns={4} />
-              {/* View Controls & Filters */}
-          <div className="max-w-7xl mx-auto mb-3 md:mb-4">
-            <div className="bg-white rounded-xl p-3 md:p-4 shadow-md border border-amber-100 space-y-3">
-
-              {/* Header with View Controls */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3">
-                <h2 className="text-sm md:text-base font-bold text-gray-900">Menu Items</h2>
-
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  {/* View Mode Toggle */}
-                  <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-                    <button
-                      onClick={() => setViewMode('grid')}
-                      className={`p-1.5 md:p-2 rounded transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                      title="Grid view"
-                    >
-                      <LayoutGrid className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
-                    </button>
-                    <button
-                      onClick={() => setViewMode('table')}
-                      className={`p-1.5 md:p-2 rounded transition-all ${viewMode === 'table' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                      title="Table view"
-                    >
-                      <List className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
-                    </button>
-                  </div>
-
-                  {/* Grid Column Selector - Only show in grid mode */}
-                  {viewMode === 'grid' && (
-                    <div className="hidden lg:flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-                      <button
-                        onClick={() => setGridColumns(2)}
-                        className={`p-1.5 rounded transition-all ${gridColumns === 2 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                        title="2 columns"
-                      >
-                        <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <rect x="3" y="3" width="8" height="8" strokeWidth="2" />
-                          <rect x="13" y="3" width="8" height="8" strokeWidth="2" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => setGridColumns(3)}
-                        className={`p-1.5 rounded transition-all ${gridColumns === 3 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                        title="3 columns"
-                      >
-                        <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <rect x="2" y="3" width="5.5" height="5.5" strokeWidth="2" />
-                          <rect x="9.25" y="3" width="5.5" height="5.5" strokeWidth="2" />
-                          <rect x="16.5" y="3" width="5.5" height="5.5" strokeWidth="2" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => setGridColumns(4)}
-                        className={`p-1.5 rounded transition-all ${gridColumns === 4 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                        title="4 columns"
-                      >
-                        <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <rect x="2" y="3" width="4" height="4" strokeWidth="2" />
-                          <rect x="8" y="3" width="4" height="4" strokeWidth="2" />
-                          <rect x="14" y="3" width="4" height="4" strokeWidth="2" />
-                          <rect x="20" y="3" width="2" height="4" strokeWidth="2" />
-                        </svg>
-                      </button>
-                     
-                    </div>
-                  )}
-
-                 
-                </div>
-              </div>
-
-              {/* Filters */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
-                  <input
-                    type="text"
-                    placeholder="Search items..."
-                    value={searchTermItems}
-                    onChange={(e) => setSearchTermItems(e.target.value)}
-                    className="w-full pl-8 md:pl-9 pr-2.5 md:pr-3 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
-                  />
-                </div>
-
-                {/* Category Filter */}
-                <div className="relative">
-                  <Filter className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
-                  <select
-                    value={filterCategory}
-                    onChange={(e) => setFilterCategory(e.target.value)}
-                    className="w-full pl-8 md:pl-9 pr-8 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
-                  >
-                    <option value="all">All Categories</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.id}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 pointer-events-none" />
-                </div>
-
-                {/* Availability Filter */}
-                <div className="relative">
-                  <Eye className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
-                  <select
-                    value={filterAvailable}
-                    onChange={(e) => setFilterAvailable(e.target.value)}
-                    className="w-full pl-8 md:pl-9 pr-8 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
-                  >
-                    <option value="all">All Items</option>
-                    <option value="available">Available</option>
-                    <option value="unavailable">Unavailable</option>
-                  </select>
-                  <ChevronDown className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 pointer-events-none" />
-                </div>
-
-                {/* Best Sellers Filter */}
-                <div className="relative">
-                  <Star className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
-                  <select
-                    value={filterMostSell}
-                    onChange={(e) => setFilterMostSell(e.target.value)}
-                    className="w-full pl-8 md:pl-9 pr-8 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
-                  >
-                    <option value="all">All Items</option>
-                    <option value="true">Best Sellers Only</option>
-                  </select>
-                  <ChevronDown className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 pointer-events-none" />
-                </div>
-              </div>
-
-              
-
-            </div>
-          </div>
+          {/* Stats Cards */}
+          <StatsCards stats={menuStats} columns={4} />
+          {/* View Controls & Filters */}
+        <ViewControls
+        title="Menu Items"
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        gridColumns={gridColumns}
+        onGridColumnsChange={setGridColumns}
+        availableColumns={[2, 3, 4]}
+        searchValue={searchTermItems}
+        onSearchChange={setSearchTermItems}
+        searchPlaceholder="Search items..."
+        filters={[
+          {
+            type: 'select',
+            icon: Filter,
+            value: filterCategory,
+            onChange: setFilterCategory,
+            options: [
+              { value: 'all', label: 'All Categories' },
+              ...categories.map(cat => ({ value: cat.id, label: cat.id }))
+            ]
+          },
+          {
+            type: 'select',
+            icon: Eye,
+            value: filterAvailable,
+            onChange: setFilterAvailable,
+            options: [
+              { value: 'all', label: 'All Items' },
+              { value: 'available', label: 'Available' },
+              { value: 'unavailable', label: 'Unavailable' }
+            ]
+          },
+          {
+            type: 'select',
+            icon: Star,
+            value: filterMostSell,
+            onChange: setFilterMostSell,
+            options: [
+              { value: 'all', label: 'All Items' },
+              { value: 'true', label: 'Best Sellers Only' }
+            ]
+          }
+        ]}
+        onReset={handleResetFilters}
+      />
 
           {/* Menu Items Display */}
           <div className="max-w-7xl mx-auto">
@@ -1207,103 +1123,24 @@ const MenuDashboard = () => {
       {/* Categories Tab */}
       {activeTab === 'categories' && (
         <>
-   
 
-              {/* Stats Cards */}
-<StatsCards stats={categoryStats} columns={1} />
-          <div className="max-w-7xl mx-auto mb-3 md:mb-4">
-            <div className="bg-white rounded-xl p-3 md:p-4 shadow-md border border-amber-100">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 mb-3">
-                <h2 className="text-sm md:text-base font-bold text-gray-900">Categories</h2>
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  {/* View Mode Toggle */}
-                  <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-                    <button
-                      onClick={() => setViewMode('grid')}
-                      className={`p-1.5 md:p-2 rounded transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                      title="Grid view"
-                    >
-                      <LayoutGrid className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
-                    </button>
-                    <button
-                      onClick={() => setViewMode('table')}
-                      className={`p-1.5 md:p-2 rounded transition-all ${viewMode === 'table' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                      title="Table view"
-                    >
-                      <List className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
-                    </button>
-                  </div>
 
-                  {/* Grid Column Selector - Only show in grid mode */}
-                  {viewMode === 'grid' && (
-                    <div className="hidden lg:flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-                      <button
-                        onClick={() => setGridColumns(2)}
-                        className={`p-1.5 rounded transition-all ${gridColumns === 2 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                        title="2 columns"
-                      >
-                        <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <rect x="3" y="3" width="8" height="8" strokeWidth="2" />
-                          <rect x="13" y="3" width="8" height="8" strokeWidth="2" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => setGridColumns(3)}
-                        className={`p-1.5 rounded transition-all ${gridColumns === 3 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                        title="3 columns"
-                      >
-                        <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <rect x="2" y="3" width="5.5" height="5.5" strokeWidth="2" />
-                          <rect x="9.25" y="3" width="5.5" height="5.5" strokeWidth="2" />
-                          <rect x="16.5" y="3" width="5.5" height="5.5" strokeWidth="2" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => setGridColumns(4)}
-                        className={`p-1.5 rounded transition-all ${gridColumns === 4 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                        title="4 columns"
-                      >
-                        <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <rect x="2" y="3" width="4" height="4" strokeWidth="2" />
-                          <rect x="8" y="3" width="4" height="4" strokeWidth="2" />
-                          <rect x="14" y="3" width="4" height="4" strokeWidth="2" />
-                          <rect x="20" y="3" width="2" height="4" strokeWidth="2" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => setGridColumns(5)}
-                        className={`p-1.5 rounded transition-all ${gridColumns === 5 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-                        title="5 columns"
-                      >
-                        <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <rect x="2" y="4" width="3" height="3" strokeWidth="2" />
-                          <rect x="6.5" y="4" width="3" height="3" strokeWidth="2" />
-                          <rect x="11" y="4" width="3" height="3" strokeWidth="2" />
-                          <rect x="15.5" y="4" width="3" height="3" strokeWidth="2" />
-                          <rect x="20" y="4" width="2" height="3" strokeWidth="2" />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
+          {/* Stats Cards */}
+          <StatsCards stats={categoryStats} columns={1} />
 
-                  
-                </div>
-              </div>
-
-              <div className="relative mb-3">
-                <Search className="absolute left-2.5 md:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
-                <input
-                  type="text"
-                  placeholder="Search categories..."
-                  value={searchTermCategories}
-                  onChange={(e) => setSearchTermCategories(e.target.value)}
-                  className="w-full pl-8 md:pl-9 pr-2.5 md:pr-3 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
-                />
-              </div>
-
-             
-            </div>
-          </div>
+          <ViewControls
+        title="Categories"
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        gridColumns={gridColumns}
+        onGridColumnsChange={setGridColumns}
+        availableColumns={[2, 3, 4, 5]}
+        searchValue={searchTermCategories}
+        onSearchChange={setSearchTermCategories}
+        searchPlaceholder="Search categories..."
+        showReset={false}
+      />
+     
 
           {/* Categories Display */}
           <div className="max-w-7xl mx-auto">
@@ -1804,13 +1641,11 @@ const MenuDashboard = () => {
                     onBlur={(e) => handleBlur(e, 'category')}
                     placeholder="hot-beverages"
                     disabled={isEditMode}
-                    className={`w-full px-2.5 md:px-3 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border rounded-lg focus:outline-none focus:ring-1 ${
-                      isEditMode ? 'opacity-60 cursor-not-allowed' : ''
-                    } ${
-                      errors.id && touched.id
+                    className={`w-full px-2.5 md:px-3 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border rounded-lg focus:outline-none focus:ring-1 ${isEditMode ? 'opacity-60 cursor-not-allowed' : ''
+                      } ${errors.id && touched.id
                         ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
                         : 'border-gray-200 focus:border-amber-500 focus:ring-amber-200'
-                    }`}
+                      }`}
                   />
                   {errors.id && touched.id && (
                     <p className="mt-1 text-[10px] md:text-xs text-red-600 flex items-center gap-1">
