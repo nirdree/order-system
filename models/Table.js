@@ -34,8 +34,7 @@ const tableSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for faster queries
-tableSchema.index({ tableNumber: 1 });
+// Index for faster queries (tableNumber has unique: true so no need for explicit index)
 tableSchema.index({ floorNumber: 1 });
 tableSchema.index({ status: 1 });
 

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Coffee, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, Loader } from 'lucide-react';
 import { authAPI } from '@/lib/api-client';
 import { useUser } from '@/context/UserContext';
@@ -8,8 +8,8 @@ const LoginPage = () => {
     const { setUser } = useUser();
     const router = useRouter();
   const [formData, setFormData] = useState({
-    email: 'owner@cafe.com',
-    password: 'password123'
+    email: '',
+    password: ''
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -17,7 +17,20 @@ const LoginPage = () => {
   const [apiError, setApiError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [touched, setTouched] = useState({});
+  const [floatingBeans, setFloatingBeans] = useState([]);
 
+  // Generate floating beans on client side only to prevent hydration mismatch
+  useEffect(() => {
+    setFloatingBeans(
+      [...Array(6)].map((_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        delay: i * 0.7,
+        duration: 4 + Math.random() * 2
+      }))
+    );
+  }, []);
 
   // Email validation
   const validateEmail = (email) => {
@@ -123,7 +136,8 @@ const LoginPage = () => {
 
       // Check for API errors
       if (data.error) {
-        throw new Error(data.error.message || 'Login failed. Please try again.');
+        console.log('Login failed:', data.error);
+        throw new Error(data?.error?.message || data?.error || data?.message || 'Login failed. Please try again......');
       }
 
       if (!data.success ) {
@@ -140,11 +154,11 @@ const LoginPage = () => {
 
         setIsLoading(false);
         if (data.data.user.role === 'owner') {
-          router.push('/owner/dashboard');
+          router.push('/dashboard');
         } else if (data.data.user.role === 'staff') {
-          router.push('/staff/dashboard');
+          router.push('/orders');
         } else if (data.data.user.role === 'manager') {
-          router.push('/manager/dashboard');
+          router.push('/orders');
         } else {
           router.push('/');
         }
@@ -167,15 +181,15 @@ const LoginPage = () => {
 
       {/* Floating Coffee Beans */}
       <div className="absolute inset-0 pointer-events-none">
-        {[...Array(6)].map((_, i) => (
+        {floatingBeans.map((bean) => (
           <div
-            key={i}
+            key={bean.id}
             className="absolute animate-float"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${i * 0.7}s`,
-              animationDuration: `${4 + Math.random() * 2}s`
+              left: `${bean.left}%`,
+              top: `${bean.top}%`,
+              animationDelay: `${bean.delay}s`,
+              animationDuration: `${bean.duration}s`
             }}
           >
             <div className="w-4 h-4 bg-amber-800 rounded-full opacity-10"></div>

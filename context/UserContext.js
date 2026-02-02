@@ -15,8 +15,16 @@ export function UserProvider({ children }) {
   const fetchUser = async () => {
     if (typeof window === 'undefined') return;
     
-    const publicPages = ['/', '/login', '/signup'];
-    if (publicPages.includes(pathname)) {
+    // Public pages that don't require authentication
+    // Check for exact matches or menu routes with tableId
+    const isPublicPage = () => {
+      const publicPages = ['/', '/login', '/signup'];
+      if (publicPages.includes(pathname)) return true;
+      if (pathname.startsWith('/menu/')) return true; // Customer menu route
+      return false;
+    };
+
+    if (isPublicPage()) {
       setLoading(false);
       return;
     }
@@ -25,6 +33,12 @@ export function UserProvider({ children }) {
       const data = await authAPI.getCurrentUser();            
       if (data?.success === true && data?.data) {
         setUser(data.data);
+      } else if (data?.success === true) {
+        // API returns user data directly, not nested in data.data
+        const userData = { ...data };
+        delete userData.success;
+        delete userData.message;
+        setUser(userData);
       } else if (data?.error || data?.status === 401) {
         // If authentication fails, logout and clear token
         setUser(null);
@@ -69,7 +83,7 @@ export function UserProvider({ children }) {
   useEffect(() => {
     fetchUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, []);
 
   return (
     <UserContext.Provider value={{ user, setUser, loading, fetchUser, logout }}>

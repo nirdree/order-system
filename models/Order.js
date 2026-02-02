@@ -1,91 +1,114 @@
 import mongoose from 'mongoose';
 
-const orderItemSchema = new mongoose.Schema({
-  _id: {
-    type: String,
-    default: () => `oi-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-  },
-  itemId: {
-    type: String,
-    ref: 'MenuItem',
-    required: true
-  },
-  name: String,
-  quantity: {
-    type: Number,
-    required: true,
-    min: 1
-  },
-  unitPrice: {
-    type: Number,
-    required: true
-  },
-  totalPrice: {
-    type: Number,
-    required: true
-  }
-}, { _id: false });
-
 const orderSchema = new mongoose.Schema({
-  _id: {
+  orderId: {
     type: String,
-    default: () => `order-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    required: true,
+    unique: true,
+    default: () => `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   },
-  tableId: {
-    type: String,
+  session: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Session',
+    default: null // null for counter orders
+  },
+  table: {
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Table',
-    required: true
+    default: null // null for counter orders
   },
-  orderNumber: {
+  orderType: {
     type: String,
-    unique: true
+    enum: ['dine-in', 'counter'],
+    default: 'dine-in'
   },
-  status: {
+  placedBy: {
     type: String,
-    enum: ['pending', 'preparing', 'served', 'completed', 'cancelled'],
+    enum: ['staff', 'customer'],
+    default: 'staff'
+  },
+  items: [{
+    menuItem: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'MenuItem',
+      required: true
+    },
+    name: {
+      type: String,
+      required: true
+    },
+    price: {
+      type: Number,
+      required: true
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1
+    },
+    subtotal: {
+      type: Number,
+      required: true
+    },
+    specialInstructions: {
+      type: String,
+      trim: true
+    }
+  }],
+  orderStatus: {
+    type: String,
+    enum: ['pending', 'preparing', 'served', 'cancelled'],
     default: 'pending'
   },
-  items: [orderItemSchema],
-  subtotal: {
+  orderAmount: {
     type: Number,
-    required: true
-  },
-  taxAmount: {
-    type: Number,
+    required: true,
     default: 0
   },
-  discountAmount: {
-    type: Number,
-    default: 0
+  orderedAt: {
+    type: Date,
+    default: Date.now
   },
-  totalAmount: {
-    type: Number,
-    required: true
+  orderedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null // null for customer orders
   },
-  createdBy: {
-    type: String,
-    ref: 'User'
-  },
-  customerName: {
+  customerNotes: {
     type: String,
     trim: true
   },
-  specialInstructions: {
-    type: String,
-    trim: true
-  }
+  notifyCustomer: {
+    type: Boolean,
+    default: false
+  },
+  estimatedTime: {
+    type: Number, // in minutes
+    default: 15
+  },
+  statusHistory: [{
+    status: {
+      type: String,
+      enum: ['pending', 'preparing', 'served', 'cancelled']
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now
+    },
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  }]
 }, {
-  timestamps: true,
-  _id: false
+  timestamps: true
 });
 
-// Generate order number before saving
-orderSchema.pre('save', async function(next) {
-  if (!this.orderNumber) {
-    const count = await mongoose.models.Order.countDocuments();
-    this.orderNumber = `ORD-${String(count + 1).padStart(6, '0')}`;
-  }
-  next();
-});
+// Index for faster queries (orderId has unique: true so no need for explicit index)
+orderSchema.index({ session: 1 });
+orderSchema.index({ table: 1 });
+orderSchema.index({ orderStatus: 1 });
+orderSchema.index({ orderType: 1 });
+orderSchema.index({ createdAt: -1 });
 
 export default mongoose.models.Order || mongoose.model('Order', orderSchema);

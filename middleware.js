@@ -20,6 +20,9 @@ function validateTokenFormat(token) {
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
+  // Public routes (no auth required)
+  const publicRoutes = ['/menu'];
+
   // Protected routes by role
   const ownerRoutes = ['/owner'];
   const managerRoutes = ['/manager'];
@@ -28,6 +31,11 @@ export async function middleware(request) {
   const authRoutes = ['/login', '/signup'];
 
   const token = request.cookies.get('authToken')?.value;
+
+  // Allow public routes without authentication
+  if (publicRoutes.some(route => pathname.startsWith(route))) {
+    return NextResponse.next();
+  }
 
   // If route is protected ensure token is present and valid
   if (protectedRoutes.some(route => pathname.startsWith(route))) {
@@ -56,10 +64,10 @@ export async function middleware(request) {
       if (payload.role !== 'owner') {
         // Redirect to respective dashboard
         if (payload.role === 'manager') {
-          return NextResponse.redirect(new URL('/manager/dashboard', request.url));
+          return NextResponse.redirect(new URL('/orders', request.url));
         }
         if (payload.role === 'staff') {
-          return NextResponse.redirect(new URL('/staff/dashboard', request.url));
+          return NextResponse.redirect(new URL('/orders', request.url));
         }
         const response = NextResponse.redirect(new URL('/login', request.url));
         response.cookies.delete('authToken');
@@ -73,7 +81,7 @@ export async function middleware(request) {
       if (payload.role !== 'manager' && payload.role !== 'owner') {
         // Redirect to respective dashboard
         if (payload.role === 'staff') {
-          return NextResponse.redirect(new URL('/staff/dashboard', request.url));
+          return NextResponse.redirect(new URL('/orders', request.url));
         }
         const response = NextResponse.redirect(new URL('/login', request.url));
         response.cookies.delete('authToken');
@@ -99,13 +107,13 @@ export async function middleware(request) {
       const payload = validateTokenFormat(token);
       if (payload) {
         if (payload.role === 'owner') {
-          return NextResponse.redirect(new URL('/owner/dashboard', request.url));
+          return NextResponse.redirect(new URL('/dashboard', request.url));
         }
         if (payload.role === 'manager') {
-          return NextResponse.redirect(new URL('/manager/dashboard', request.url));
+          return NextResponse.redirect(new URL('/orders', request.url));
         }
         if (payload.role === 'staff') {
-          return NextResponse.redirect(new URL('/staff/dashboard', request.url));
+          return NextResponse.redirect(new URL('/orders', request.url));
         }
       }
     }
