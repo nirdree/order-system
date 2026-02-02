@@ -4,7 +4,7 @@ import {
   Plus, ChevronDown, Clock, CheckCircle, AlertCircle, Loader, 
   Eye, TrendingUp, Users, IndianRupee, UtensilsCrossed, X, 
   ShoppingBag, Trash2, Package, Utensils, Minus, ShoppingCart, 
-  Send, Receipt, Edit2
+  Send, Receipt, Edit2, MapPin
 } from 'lucide-react';
 import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI, customerAPI, categoriesAPI } from '@/lib/api-client';
 import { useParams } from 'next/navigation';
@@ -17,6 +17,12 @@ const OrderManagementDashboard = () => {
   const [notification, setNotification] = useState({ show: false, type: '', message: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTable, setSelectedTable] = useState(null);
+
+  // Location states
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationError, setLocationError] = useState(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   // Session & Order states
   const [session, setSession] = useState(null);
@@ -115,6 +121,57 @@ const OrderManagementDashboard = () => {
     setTimeout(() => setNotification({ show: false, type: '', message: '' }), 3000);
   };
 
+  const requestLocation = () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by your browser'));
+        return;
+      }
+
+      setIsGettingLocation(true);
+      
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          setUserLocation(location);
+          setLocationError(null);
+          setIsGettingLocation(false);
+          resolve(location);
+        },
+        (error) => {
+          setIsGettingLocation(false);
+          let errorMessage = '';
+          
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Location access denied. Please enable location permissions to place an order.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Location information is unavailable.';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Location request timed out.';
+              break;
+            default:
+              errorMessage = 'An unknown error occurred while getting location.';
+          }
+          
+          setLocationError(errorMessage);
+          reject(new Error(errorMessage));
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    });
+  };
+
   const handleAddToCart = (itemId) => {
     setCart(prev => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
   };
@@ -128,12 +185,33 @@ const OrderManagementDashboard = () => {
     });
   };
 
-  const handlePlaceOrder = async () => {
+  const handlePlaceOrderClick = async () => {
     if (Object.keys(cart).length === 0) {
       showNotification('error', 'Please add at least one item to cart');
       return;
     }
 
+    // Check if we already have location
+    if (userLocation) {
+      await placeOrderWithLocation(userLocation);
+    } else {
+      // Show location modal
+      setShowLocationModal(true);
+    }
+  };
+
+  const handleRequestLocationAndOrder = async () => {
+    try {
+      const location = await requestLocation();
+      setShowLocationModal(false);
+      await placeOrderWithLocation(location);
+    } catch (error) {
+      console.error('Location error:', error);
+      // Modal stays open to show error and retry option
+    }
+  };
+
+  const placeOrderWithLocation = async (location) => {
     try {
       setIsLoading(true);
       
@@ -147,7 +225,12 @@ const OrderManagementDashboard = () => {
         items,
         customerName: '',
         customerPhone: '',
-        customerNotes: ''
+        customerNotes: '',
+        location: {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          accuracy: location.accuracy
+        }
       });
 
       if (orderResponse.success) {
@@ -188,6 +271,73 @@ const OrderManagementDashboard = () => {
         } text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm`}>
           {notification.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           <span className="font-medium">{notification.message}</span>
+        </div>
+      )}
+
+      {/* Location Permission Modal */}
+      {showLocationModal && (
+        <div className="fixed inset-0 z-[10001] bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in">
+            <div className="text-center mb-4">
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="w-8 h-8 text-amber-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Location Required</h3>
+              <p className="text-gray-600 text-sm">
+                We need your location to process your order and ensure accurate delivery to your table.
+              </p>
+            </div>
+
+            {locationError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-red-800 text-sm font-medium mb-1">Access Denied</p>
+                    <p className="text-red-700 text-xs">{locationError}</p>
+                    <p className="text-red-600 text-xs mt-2">
+                      Please enable location permissions in your browser settings and try again.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <button
+                onClick={handleRequestLocationAndOrder}
+                disabled={isGettingLocation}
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white px-4 py-3 rounded-xl font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isGettingLocation ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" />
+                    Getting Location...
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="w-5 h-5" />
+                    {locationError ? 'Try Again' : 'Allow Location'}
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowLocationModal(false);
+                  setLocationError(null);
+                }}
+                disabled={isGettingLocation}
+                className="w-full border-2 border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-semibold hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 text-center mt-4">
+              Your location will only be used for this order and won't be stored.
+            </p>
+          </div>
         </div>
       )}
 
@@ -345,7 +495,7 @@ const OrderManagementDashboard = () => {
                   </button>
                 )}
                 <button
-                  onClick={handlePlaceOrder}
+                  onClick={handlePlaceOrderClick}
                   disabled={isLoading || cartItemsCount === 0}
                   className="flex-1 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg font-bold disabled:opacity-50 flex items-center justify-center gap-2"
                 >
@@ -496,6 +646,8 @@ const OrderManagementDashboard = () => {
         .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
         @keyframes slide-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
         .animate-slide-in { animation: slide-in 0.3s; }
+        @keyframes scale-in { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .animate-scale-in { animation: scale-in 0.2s; }
       `}</style>
     </div>
   );

@@ -4,7 +4,7 @@ import {
   UtensilsCrossed, Plus, Edit, Trash2, Search, Filter, X,
   Save, MapPin, Users, CheckCircle, AlertCircle,
   Loader, ChevronDown, QrCode, Download, FileDown,
-  LayoutGrid, List, RotateCcw
+  LayoutGrid, List, RotateCcw, Power, PowerOff
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import jsPDF from 'jspdf';
@@ -26,14 +26,15 @@ const TableManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterFloor, setFilterFloor] = useState('all');
+  const [filterQrOrders, setFilterQrOrders] = useState('all');
   const [notification, setNotification] = useState({ show: false, type: '', message: '' });
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, tableId: null });
   const [isLoading, setIsLoading] = useState(false);
   const [qrModal, setQrModal] = useState({ show: false, table: null, qrDataUrl: '' });
 
   // View Mode
-  const [viewMode, setViewMode] = useState('table'); // 'grid' or 'table'
-  const [gridColumns, setGridColumns] = useState(4); // 1, 2, 3, 4, 5, or 6 columns
+  const [viewMode, setViewMode] = useState('table');
+  const [gridColumns, setGridColumns] = useState(4);
 
   const [formData, setFormData] = useState({
     tableNumber: '',
@@ -62,7 +63,7 @@ const TableManagement = () => {
 
   useEffect(() => {
     filterTables();
-  }, [searchTerm, filterStatus, filterFloor, tables]);
+  }, [searchTerm, filterStatus, filterFloor, filterQrOrders, tables]);
 
   const loadTables = async () => {
     try {
@@ -95,6 +96,11 @@ const TableManagement = () => {
     }
     if (filterFloor !== 'all') {
       filtered = filtered.filter(table => table.floorNumber === parseInt(filterFloor));
+    }
+    if (filterQrOrders !== 'all') {
+      filtered = filtered.filter(table => 
+        filterQrOrders === 'enabled' ? table.isActive : !table.isActive
+      );
     }
     setFilteredTables(filtered);
   };
@@ -335,10 +341,35 @@ const TableManagement = () => {
     }
   };
 
+  // Toggle QR Orders (isActive)
+  const toggleQROrders = async (tableId) => {
+    const table = tables.find(t => t._id === tableId);
+
+    try {
+      setIsLoading(true);
+      const response = await tablesAPI.updateTable(tableId, {
+        isActive: !table.isActive
+      });
+
+      if (response.success) {
+        showNotification('success', `QR Orders ${!table.isActive ? 'enabled' : 'disabled'} successfully`);
+        await loadTables();
+      } else {
+        showNotification('error', response.message || 'Failed to update QR Orders status');
+      }
+    } catch (error) {
+      console.error('Error toggling QR Orders:', error);
+      showNotification('error', 'Failed to update QR Orders status');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleResetFilters = () => {
     setSearchTerm('');
     setFilterStatus('all');
     setFilterFloor('all');
+    setFilterQrOrders('all');
   };
 
   const tableStats = [
@@ -361,10 +392,10 @@ const TableManagement = () => {
       color: 'red'
     },
     {
-      icon: Users,
-      label: 'Total Capacity',
-      value: tables.reduce((sum, t) => sum + t.capacity, 0),
-      color: 'orange'
+      icon: QrCode,
+      label: 'QR Orders Active',
+      value: tables.filter(t => t.isActive).length,
+      color: 'purple'
     }
   ];
 
@@ -628,6 +659,17 @@ const TableManagement = () => {
                 label: `Floor ${floor}` 
               }))
             ]
+          },
+          {
+            type: 'select',
+            icon: QrCode,
+            value: filterQrOrders,
+            onChange: setFilterQrOrders,
+            options: [
+              { value: 'all', label: 'All QR Orders' },
+              { value: 'enabled', label: 'QR Enabled' },
+              { value: 'disabled', label: 'QR Disabled' }
+            ]
           }
         ]}
         onReset={handleResetFilters}
@@ -693,8 +735,32 @@ const TableManagement = () => {
                   </div>
                 </div>
 
+                {/* QR Orders Toggle */}
+                <div className="mb-3 pb-3 border-b border-gray-100">
+                  <button
+                    onClick={() => toggleQROrders(table._id)}
+                    className={`w-full px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                      table.isActive
+                        ? 'bg-purple-500 text-white hover:bg-purple-600'
+                        : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                    }`}
+                  >
+                    {table.isActive ? (
+                      <>
+                        <Power className="w-3.5 h-3.5" />
+                        QR Orders ON
+                      </>
+                    ) : (
+                      <>
+                        <PowerOff className="w-3.5 h-3.5" />
+                        QR Orders OFF
+                      </>
+                    )}
+                  </button>
+                </div>
+
                 {/* Actions */}
-                <div className="flex gap-2 pt-3 border-t border-gray-100">
+                <div className="flex gap-2">
                   <button onClick={() => openEditModal(table)} className="flex-1 px-2 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium flex items-center justify-center gap-1">
                     <Edit className="w-3 h-3 md:w-3.5 md:h-3.5" />Edit
                   </button>
@@ -702,12 +768,6 @@ const TableManagement = () => {
                     <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />Delete
                   </button>
                 </div>
-
-                {!table.isActive && (
-                  <div className="mt-2 px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-semibold text-center">
-                    Inactive
-                  </div>
-                )}
               </div>
             ))}
           </div>
@@ -722,7 +782,8 @@ const TableManagement = () => {
                     <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden sm:table-cell">Floor</th>
                     <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden md:table-cell">Capacity</th>
                     <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden lg:table-cell">Location</th>
-                    <th className="px-3 md:px-4 py-2.5 md:py-3 text-center text-xs md:text-sm font-bold text-gray-700">Status</th>
+                    <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden lg:table-cell">Status</th>
+                    <th className="px-3 md:px-4 py-2.5 md:py-3 text-center text-xs md:text-sm font-bold text-gray-700">QR Orders</th>
                     <th className="px-3 md:px-4 py-2.5 md:py-3 text-center text-xs md:text-sm font-bold text-gray-700">Actions</th>
                   </tr>
                 </thead>
@@ -765,11 +826,37 @@ const TableManagement = () => {
                       </td>
 
                       {/* Status */}
-                      <td className="px-3 md:px-4 py-2 md:py-3">
+                      <td className="px-3 md:px-4 py-2 md:py-3 hidden lg:table-cell">
                         <div className="flex justify-center">
                           <span className={`inline-flex px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg font-bold text-[10px] md:text-xs border ${statusColors[table.status]}`}>
                             {table.status === 'available' ? 'Available' : 'Occupied'}
                           </span>
+                        </div>
+                      </td>
+
+                      {/* QR Orders Toggle */}
+                      <td className="px-3 md:px-4 py-2 md:py-3">
+                        <div className="flex justify-center">
+                          <button
+                            onClick={() => toggleQROrders(table._id)}
+                            className={`px-2.5 py-1.5 rounded-lg text-[10px] md:text-xs font-bold flex items-center gap-1 transition-all ${
+                              table.isActive
+                                ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                          >
+                            {table.isActive ? (
+                              <>
+                                <Power className="w-3 h-3" />
+                                ON
+                              </>
+                            ) : (
+                              <>
+                                <PowerOff className="w-3 h-3" />
+                                OFF
+                              </>
+                            )}
+                          </button>
                         </div>
                       </td>
 
@@ -914,16 +1001,24 @@ const TableManagement = () => {
                   </div>
                 </div>
 
-                <div className="sm:col-span-2">
+                <div className="sm:col-span-2 p-3 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       name="isActive"
                       checked={formData.isActive}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-amber-600 bg-gray-100 border-gray-300 rounded focus:ring-amber-500 focus:ring-1"
+                      className="w-5 h-5 text-purple-600 bg-white border-purple-300 rounded focus:ring-purple-500 focus:ring-2"
                     />
-                    <span className="text-sm font-semibold text-gray-700">Active Table</span>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <QrCode className="w-5 h-5 text-purple-600" />
+                        <span className="text-sm font-bold text-gray-900">Enable QR Orders</span>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1 ml-7">
+                        Allow customers to scan QR code and place orders from this table
+                      </p>
+                    </div>
                   </label>
                 </div>
               </div>
