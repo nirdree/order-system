@@ -75,6 +75,10 @@ const sessionSchema = new mongoose.Schema({
     type: String,
     enum: ['pending', 'paid'],
     default: 'pending'
+  },
+  token:{
+    type: String,
+    default: null
   }
 }, {
   timestamps: true

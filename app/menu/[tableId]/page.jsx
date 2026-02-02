@@ -219,6 +219,7 @@ const OrderManagementDashboard = () => {
         menuItemId: itemId,
         quantity
       }));
+      const token = localStorage.getItem('token') || '';
 
       const orderResponse = await customerAPI.placeOrder({
         tableId: selectedTable._id,
@@ -226,6 +227,7 @@ const OrderManagementDashboard = () => {
         customerName: '',
         customerPhone: '',
         customerNotes: '',
+        token,
         location: {
           latitude: location.latitude,
           longitude: location.longitude,
@@ -237,6 +239,7 @@ const OrderManagementDashboard = () => {
         showNotification('success', 'Order placed successfully');
         setCart({});
         setShowMenuView(false);
+        localStorage.setItem('token', orderResponse?.data?.token);
         await loadTableData();
         await loadSession();
       } else {

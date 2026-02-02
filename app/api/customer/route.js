@@ -4,7 +4,7 @@ import Session from '@/models/Session';
 import Table from '@/models/Table';
 import MenuItem from '@/models/MenuItem';
 import { successResponse, errorResponse } from '@/lib/apiResponse';
-
+import { generateToken } from '@/middleware/auth';
 export const runtime = 'nodejs';
 
 // POST - Create customer order (No authentication required)
@@ -18,7 +18,8 @@ export async function POST(req) {
       items,
       customerName,
       customerPhone,
-      customerNotes
+      customerNotes,
+      token
     } = body;
 
     // Validate required fields
@@ -46,9 +47,16 @@ export async function POST(req) {
       table: tableId,
       status: 'active'
     });
+    
+    let isNewSession = false;
+    let generatedToken = null;
 
     // If no active session exists, create one
     if (!session) {
+      // Generate token for new session
+      generatedToken = await generateToken("0" , "customer");
+      isNewSession = true;
+
       session = await Session.create({
         table: tableId,
         tableNumber: table.tableNumber,
@@ -57,12 +65,24 @@ export async function POST(req) {
         customerPhone,
         initiatedBy: 'customer',
         isCustomerSelfService: true,
-        createdBy: null
+        createdBy: null,
+        token: generatedToken
       });
 
       // Update table status to occupied
       await Table.findByIdAndUpdate(tableId, { status: 'occupied' });
     } else {
+      // Existing session - check token if provided
+      if (token && token !== session.token) {
+        return errorResponse('Invalid session token', 401);
+      }
+
+      // If session exists but no token is assigned, generate and assign one
+      if (!session.token) {
+        generatedToken = await generateToken("0" , "customer");
+        session.token = generatedToken;
+      }
+
       // Update customer info if provided and not already set
       if (customerName && !session.customerName) {
         session.customerName = customerName;
@@ -70,6 +90,7 @@ export async function POST(req) {
       if (customerPhone && !session.customerPhone) {
         session.customerPhone = customerPhone;
       }
+      
       await session.save();
     }
 
@@ -135,15 +156,23 @@ const orderIdNext = await Order.countDocuments().then(count => count + 1);
       .populate('table', 'tableNumber floorNumber')
       .populate('items.menuItem', 'name price imgURL preparationTime');
 
+    // Prepare response - include token only if session is new or didn't have one previously
+    const response = {
+      order: populatedOrder,
+      session: {
+        sessionId: session.sessionId,
+        tableNumber: session.tableNumber,
+        totalAmount: session.totalAmount
+      }
+    };
+
+    // Add token to response only if it's a new session or we just generated one
+    if (isNewSession || generatedToken) {
+      response.token = generatedToken || session.token;
+    }
+
     return successResponse(
-      {
-        order: populatedOrder,
-        session: {
-          sessionId: session.sessionId,
-          tableNumber: session.tableNumber,
-          totalAmount: session.totalAmount
-        }
-      },
+      response,
       'Order placed successfully',
       201
     );
