@@ -15,8 +15,16 @@ export function UserProvider({ children }) {
   const fetchUser = async () => {
     if (typeof window === 'undefined') return;
     
-    const publicPages = ['/', '/login', '/signup'];
-    if (publicPages.includes(pathname)) {
+    // Public pages that don't require authentication
+    // Check for exact matches or menu routes with tableId
+    const isPublicPage = () => {
+      const publicPages = ['/', '/login', '/signup'];
+      if (publicPages.includes(pathname)) return true;
+      if (pathname.startsWith('/menu/')) return true; // Customer menu route
+      return false;
+    };
+
+    if (isPublicPage()) {
       setLoading(false);
       return;
     }

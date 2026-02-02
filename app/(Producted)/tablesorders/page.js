@@ -44,6 +44,11 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
   const [ordersViewMode, setOrdersViewMode] = useState('grid'); // 'grid' or 'table'
   const [ordersGridColumns, setOrdersGridColumns] = useState(1); // 1, 2, or 3 columns for orders
 
+  // View Mode States for Menu
+  const [menuViewMode, setMenuViewMode] = useState('grid'); // 'grid' or 'table'
+  const [menuGridColumns, setMenuGridColumns] = useState(3); // 2, 3, or 4 columns for menu
+  const [menuSearchTerm, setMenuSearchTerm] = useState(''); // search for menu items
+
   useEffect(() => {
     if (isOpen && table) {
       if (table.status === 'occupied') {
@@ -358,7 +363,9 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
   const cartItemsCount = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
   const filteredMenuItems = menuItems.filter(item => {
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    return matchesCategory && item.available;
+    const matchesSearch = item.name.toLowerCase().includes(menuSearchTerm.toLowerCase()) || 
+                          item.description?.toLowerCase().includes(menuSearchTerm.toLowerCase());
+    return matchesCategory && item.available && matchesSearch;
   });
 
   return (
@@ -371,11 +378,12 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
         </div>
       )}
 
-      <div className="bg-white rounded-t-xl sm:rounded-2xl max-w-6xl w-full h-full sm:max-h-[95vh] overflow-hidden shadow-2xl flex flex-col">
+      <div className="bg-white rounded-t-xl sm:rounded-2xl max-w-4xl w-full h-full sm:max-h-[95vh] overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-3 md:px-5 py-3 md:py-4 flex items-center justify-between flex-shrink-0">
           <div>
             <h2 className="text-lg md:text-xl font-bold text-white">Table {table.tableNumber}</h2>
+            <h2 className="text-lg md:text-xl font-bold text-white">Table ID {table._id}</h2>
             <p className="text-white/90 text-xs md:text-sm">Floor {table.floorNumber} • {table.capacity} seats</p>
           </div>
           <button onClick={onClose} className="p-1.5 md:p-2 hover:bg-white/20 rounded-lg transition">
@@ -398,17 +406,17 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
                         onClick={() => setSelectedCategory(cat.id)}
                         className="flex-shrink-0 flex flex-col items-center gap-1 md:gap-1.5 transition-transform hover:scale-105"
                       >
-                        <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden border-2 transition ${selectedCategory === cat.id ? 'border-amber-500 shadow-md' : 'border-gray-200'
+                        <div className={`w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden border-2 transition ${selectedCategory === cat.id ? 'border-amber-500 shadow-md' : 'border-gray-200'
                           }`}>
                           {cat.imgURL ? (
                             <img src={cat.imgURL} alt={cat.id} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-base md:text-lg">
+                            <div className="w-full h-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-base md:text-xl">
                               {cat.id === 'all' ? '🍽️' : '✨'}
                             </div>
                           )}
                         </div>
-                        <p className={`text-[10px] md:text-xs font-semibold max-w-[60px] truncate ${selectedCategory === cat.id ? 'text-amber-600' : 'text-gray-700'
+                        <p className={`text-[10px] md:text-xs font-semibold max-w-[60px] text-center truncate ${selectedCategory === cat.id ? 'text-amber-600' : 'text-gray-700'
                           }`}>
                           {cat.description || cat.id}
                         </p>
@@ -420,7 +428,87 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
             </div>
 
             {/* Menu Items Grid */}
-            <div className="flex-1 overflow-y-auto p-3 md:p-4">
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* View Controls */}
+              <div className="border-b border-gray-200 flex-shrink-0 bg-white sticky top-0 z-10 px-3 md:px-4 py-2 md:py-3 space-y-2 md:space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm md:text-base font-bold text-gray-900">Menu Items ({filteredMenuItems.length})</h3>
+                  
+                  <div className="flex items-center gap-2">
+                    {/* View Mode Toggle */}
+                    <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+                      <button
+                        onClick={() => setMenuViewMode('grid')}
+                        className={`p-1.5 md:p-2 rounded transition-all ${menuViewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                        title="Grid view"
+                      >
+                        <LayoutGrid className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
+                      </button>
+                      <button
+                        onClick={() => setMenuViewMode('table')}
+                        className={`p-1.5 md:p-2 rounded transition-all ${menuViewMode === 'table' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                        title="Table view"
+                      >
+                        <List className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
+                      </button>
+                    </div>
+
+                    {/* Grid Column Selector - Only show in grid mode */}
+                    {menuViewMode === 'grid' && (
+                      <div className="hidden md:flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+                        <button
+                          onClick={() => setMenuGridColumns(2)}
+                          className={`p-1.5 rounded transition-all ${menuGridColumns === 2 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                          title="2 columns"
+                        >
+                          <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="2" y="3" width="9" height="6" strokeWidth="2" />
+                            <rect x="13" y="3" width="9" height="6" strokeWidth="2" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => setMenuGridColumns(3)}
+                          className={`p-1.5 rounded transition-all ${menuGridColumns === 3 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                          title="3 columns"
+                        >
+                          <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="2" y="3" width="5.5" height="6" strokeWidth="2" />
+                            <rect x="9.25" y="3" width="5.5" height="6" strokeWidth="2" />
+                            <rect x="16.5" y="3" width="5.5" height="6" strokeWidth="2" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => setMenuGridColumns(4)}
+                          className={`p-1.5 rounded transition-all ${menuGridColumns === 4 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                          title="4 columns"
+                        >
+                          <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="1.5" y="3" width="4" height="6" strokeWidth="2" />
+                            <rect x="7" y="3" width="4" height="6" strokeWidth="2" />
+                            <rect x="12.5" y="3" width="4" height="6" strokeWidth="2" />
+                            <rect x="18" y="3" width="4" height="6" strokeWidth="2" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Search Input */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search menu items..."
+                    value={menuSearchTerm}
+                    onChange={(e) => setMenuSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Menu Items Content */}
+              <div className="flex-1 overflow-y-auto p-3 md:p-4">
               {isLoadingMenuItems ? (
                 <div className="flex items-center justify-center h-48">
                   <Loader className="w-6 h-6 md:w-7 md:h-7 text-amber-600 animate-spin" />
@@ -430,8 +518,11 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
                   <Utensils className="w-10 h-10 md:w-12 md:h-12 text-amber-400 mx-auto mb-3" />
                   <p className="text-gray-500 text-sm md:text-base">No items available</p>
                 </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
+              ) : menuViewMode === 'grid' ? (
+                <div className={`grid gap-2 md:gap-3 ${menuGridColumns === 2 ? 'grid-cols-2 md:grid-cols-2' :
+                  menuGridColumns === 3 ? 'grid-cols-2 md:grid-cols-3' :
+                    'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+                  }`}>
                   {filteredMenuItems.map((item) => (
                     <div key={item._id} className="bg-white rounded-xl overflow-hidden shadow border border-gray-200 hover:shadow-lg transition">
                       <div className="relative h-28 md:h-32 bg-gray-100">
@@ -481,7 +572,78 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
                     </div>
                   ))}
                 </div>
+              ) : (
+                // Table View for Menu Items
+                <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200">
+                        <tr>
+                          <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700">Item</th>
+                          <th className="px-3 md:px-4 py-2.5 md:py-3 text-center text-xs md:text-sm font-bold text-gray-700">Price</th>
+                          <th className="px-3 md:px-4 py-2.5 md:py-3 text-center text-xs md:text-sm font-bold text-gray-700 hidden sm:table-cell">Time</th>
+                          <th className="px-3 md:px-4 py-2.5 md:py-3 text-center text-xs md:text-sm font-bold text-gray-700">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {filteredMenuItems.map((item) => (
+                          <tr key={item._id} className="hover:bg-amber-50/50 transition-colors">
+                            <td className="px-3 md:px-4 py-2 md:py-3">
+                              <div className="flex items-center gap-2">
+                                {item.imgURL && item.imgURL !== '/images/default-item.jpg' ? (
+                                  <img src={item.imgURL} alt={item.name} className="w-8 h-8 md:w-10 md:h-10 rounded object-cover" />
+                                ) : (
+                                  <div className="w-8 h-8 md:w-10 md:h-10 rounded bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                                    <Utensils className="w-4 h-4 md:w-5 md:h-5 text-amber-600" />
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="font-semibold text-gray-900 text-xs md:text-sm">{item.name}</p>
+                                  {item.mostSell && <span className="text-[10px] text-red-500 font-bold">🔥 Popular</span>}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-3 md:px-4 py-2 md:py-3 text-center">
+                              <span className="font-bold text-amber-600 text-sm md:text-base">₹{item.price?.toFixed(0)}</span>
+                            </td>
+                            <td className="px-3 md:px-4 py-2 md:py-3 text-center hidden sm:table-cell">
+                              {item.preparationTime && (
+                                <span className="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded">
+                                  {item.preparationTime}m
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-3 md:px-4 py-2 md:py-3">
+                              <div className="flex items-center justify-center gap-1 md:gap-2">
+                                {cart[item._id] ? (
+                                  <div className="flex items-center gap-0.5 md:gap-1 bg-amber-500 rounded-lg p-0.5 md:p-1">
+                                    <button onClick={() => handleRemoveFromCart(item._id)} className="text-white hover:bg-amber-600 p-0.5 rounded">
+                                      <Minus className="w-3 h-3 md:w-4 md:h-4" />
+                                    </button>
+                                    <span className="text-white font-bold text-xs md:text-sm px-1">{cart[item._id]}</span>
+                                    <button onClick={() => handleAddToCart(item._id)} className="text-white hover:bg-amber-600 p-0.5 rounded">
+                                      <Plus className="w-3 h-3 md:w-4 md:h-4" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => handleAddToCart(item._id)}
+                                    className="py-1 md:py-1.5 px-2 md:px-3 rounded-lg font-semibold text-xs md:text-sm bg-amber-500 text-white hover:bg-amber-600"
+                                  >
+                                    <Plus className="w-3 h-3 md:w-4 md:h-4 inline mr-1" />
+                                    Add
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               )}
+              </div>
             </div>
 
             {/* Cart Footer */}
