@@ -4,7 +4,7 @@ import Session from '@/models/Session';
 import Table from '@/models/Table';
 import MenuItem from '@/models/MenuItem';
 import { successResponse, errorResponse } from '@/lib/apiResponse';
-
+import { checkPlaceOfOrder } from '@/lib/locationUtils';
 export const runtime = 'nodejs';
 
 // POST - Create customer order (No authentication required)
@@ -18,10 +18,23 @@ export async function POST(req) {
       items,
       customerName,
       customerPhone,
-      customerNotes
+      customerNotes,
+      location
     } = body;
-
+      const ipAddress = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
     // Validate required fields
+    const isValidLocation = location &&
+      typeof location === 'object' &&
+      location.latitude !== undefined &&
+      location.longitude !== undefined;
+    if (!isValidLocation) {
+      return errorResponse('Valid location is required', 400);
+    }
+
+    const isValidPlaceOfOrder =  await checkPlaceOfOrder(location.latitude, location.longitude , location.accuracy);
+    if (!isValidPlaceOfOrder) {
+      return errorResponse('You are not within the allowed distance to place an order', 400);
+    }
     if (!tableId) {
       return errorResponse('Table ID is required', 400);
     }
