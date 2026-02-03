@@ -320,7 +320,7 @@ const TableManagement = () => {
 
   const toggleTableStatus = async (tableId) => {
     const table = tables.find(t => t._id === tableId);
-    const newStatus = table.status === 'available' ? 'occupied' : 'available';
+    const newStatus = table.status === 'available' ? 'occupied' : 'available'; 
     
     // Optimistic update - update UI immediately
     setTables(prev =>
