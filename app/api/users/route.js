@@ -26,6 +26,12 @@ export async function GET(req) {
     }
 
     if (currentUser.role === 'owner') {
+      // Owner can see everyone except admin
+      filter = { role: { $ne: 'admin' } };
+    }
+
+    if (currentUser.role === 'admin') {
+      // Admin can see everyone
       filter = {};
     }
 
@@ -51,8 +57,13 @@ export async function POST(req) {
 
     const currentUser = await authenticate(req);
 
-    if (!currentUser?.role || currentUser.role !== 'owner') {
-      return errorResponse('Only owner can create users', 403);
+    if (!currentUser?.role) {
+      return errorResponse('Unauthorized', 403);
+    }
+
+    // Only admin and owner can create users
+    if (!['admin', 'owner'].includes(currentUser.role)) {
+      return errorResponse('Only admin or owner can create users', 403);
     }
 
     const body = await req.json();
@@ -71,8 +82,19 @@ export async function POST(req) {
       return errorResponse('Required fields are missing', 400);
     }
 
-    if (role === 'owner') {
+    // Owner cannot create admin
+    if (currentUser.role === 'owner' && role === 'admin') {
+      return errorResponse('Owner cannot create admin users', 403);
+    }
+
+    // Owner cannot create another owner
+    if (currentUser.role === 'owner' && role === 'owner') {
       return errorResponse('Cannot create another owner', 403);
+    }
+
+    // Admin cannot create another admin (optional restriction)
+    if (currentUser.role === 'admin' && role === 'admin') {
+      return errorResponse('Cannot create another admin', 403);
     }
 
     const existingUser = await User.findOne({ email });
@@ -88,7 +110,7 @@ export async function POST(req) {
       salary,
       joiningDate,
       isActive,
-      password, // assume hashing is handled in model middleware
+      password,
     });
 
     return successResponse(

@@ -153,7 +153,7 @@ const LoginPage = () => {
       // Redirect after small delay to let cookie be set by API
 
         setIsLoading(false);
-        if (data.data.user.role === 'owner') {
+        if (data.data.user.role === 'owner' || "admin") {
           router.push('/dashboard');
         } else if (data.data.user.role === 'staff') {
           router.push('/orders');

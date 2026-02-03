@@ -4,7 +4,7 @@ import {
   Users, Plus, Edit, Trash2, Search, Filter, X, Eye, EyeOff,
   Save, UserPlus, Mail, Phone, Calendar, DollarSign,
   CheckCircle, AlertCircle, Loader, ChevronDown, User,
-  LayoutGrid, List, RotateCcw, MapPin, IndianRupee
+  LayoutGrid, List, RotateCcw, MapPin, IndianRupee, Shield
 } from 'lucide-react';
 import { usersAPI } from '@/lib/api-client';
 import { useUser } from '@/context/UserContext';
@@ -217,6 +217,42 @@ const UserManagement = () => {
     return !Object.values(newErrors).some(error => error !== '');
   };
 
+  // Helper function to check if user can be edited
+  const canEditUser = (targetUser) => {
+    if (currentUserRole === 'admin') {
+      // Admin can edit everyone except other admins
+      return targetUser.role !== 'admin';
+    } else if (currentUserRole === 'owner') {
+      // Owner can edit staff and managers only (NOT admin or owner)
+      return targetUser.role === 'staff' || targetUser.role === 'manager';
+    }
+    return false;
+  };
+
+  // Helper function to check if user can be deleted
+  const canDeleteUser = (targetUser) => {
+    if (currentUserRole === 'admin') {
+      // Admin can delete everyone except other admins
+      return targetUser.role !== 'admin';
+    } else if (currentUserRole === 'owner') {
+      // Owner can delete staff and managers only (NOT admin or owner)
+      return targetUser.role === 'staff' || targetUser.role === 'manager';
+    }
+    return false;
+  };
+
+  // Helper function to check if user status can be toggled
+  const canToggleUserStatus = (targetUser) => {
+    if (currentUserRole === 'admin') {
+      // Admin can toggle everyone except other admins
+      return targetUser.role !== 'admin';
+    } else if (currentUserRole === 'owner') {
+      // Owner can toggle staff and managers only (NOT admin or owner)
+      return targetUser.role === 'staff' || targetUser.role === 'manager';
+    }
+    return false;
+  };
+
   const openAddModal = () => {
     setIsEditMode(false);
     setCurrentUser(null);
@@ -236,22 +272,27 @@ const UserManagement = () => {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (user) => {
-    if (user.role === 'owner') {
-      showNotification('error', 'Owner account cannot be edited');
+  const openEditModal = (targetUser) => {
+    if (!canEditUser(targetUser)) {
+      if (currentUserRole === 'admin' && targetUser.role === 'admin') {
+        showNotification('error', 'Admin cannot edit other admin accounts');
+      } else if (currentUserRole === 'owner') {
+        showNotification('error', 'Owner can only edit staff and manager accounts');
+      }
       return;
     }
+
     setIsEditMode(true);
-    setCurrentUser(user);
+    setCurrentUser(targetUser);
     setFormData({
-      name: user.name,
-      email: user.email,
+      name: targetUser.name,
+      email: targetUser.email,
       password: '',
-      role: user.role,
-      phone: user.phone || '',
-      salary: user.salary || '',
-      joiningDate: new Date(user.joiningDate).toISOString().split('T')[0],
-      isActive: user.isActive
+      role: targetUser.role,
+      phone: targetUser.phone || '',
+      salary: targetUser.salary || '',
+      joiningDate: new Date(targetUser.joiningDate).toISOString().split('T')[0],
+      isActive: targetUser.isActive
     });
     setErrors({});
     setTouched({});
@@ -337,11 +378,17 @@ const UserManagement = () => {
   };
 
   const handleDelete = (userId) => {
-    const user = users.find(u => u._id === userId);
-    if (user.role === 'owner') {
-      showNotification('error', 'Owner account cannot be deleted');
+    const targetUser = users.find(u => u._id === userId);
+    
+    if (!canDeleteUser(targetUser)) {
+      if (currentUserRole === 'admin' && targetUser.role === 'admin') {
+        showNotification('error', 'Admin cannot delete other admin accounts');
+      } else if (currentUserRole === 'owner') {
+        showNotification('error', 'Owner can only delete staff and manager accounts');
+      }
       return;
     }
+
     setDeleteConfirm({ show: true, userId });
   };
 
@@ -365,19 +412,24 @@ const UserManagement = () => {
   };
 
   const toggleUserStatus = async (userId) => {
-    const user = users.find(u => u._id === userId);
-    if (user.role === 'owner') {
-      showNotification('error', 'Owner account status cannot be changed');
+    const targetUser = users.find(u => u._id === userId);
+    
+    if (!canToggleUserStatus(targetUser)) {
+      if (currentUserRole === 'admin' && targetUser.role === 'admin') {
+        showNotification('error', 'Admin cannot change other admin status');
+      } else if (currentUserRole === 'owner') {
+        showNotification('error', 'Owner can only change staff and manager status');
+      }
       return;
     }
 
     try {
       setIsLoading(true);
       const response = await usersAPI.updateUser(userId, {
-        isActive: !user.isActive
+        isActive: !targetUser.isActive
       });
       if (response.success) {
-        showNotification('success', `User ${!user.isActive ? 'activated' : 'deactivated'} successfully`);
+        showNotification('success', `User ${!targetUser.isActive ? 'activated' : 'deactivated'} successfully`);
         await loadUsers();
       } else {
         showNotification('error', response.message || 'Failed to update user status');
@@ -392,6 +444,8 @@ const UserManagement = () => {
 
   const getRoleBadgeColor = (role) => {
     switch (role) {
+      case 'admin':
+        return 'bg-gradient-to-r from-red-500 to-rose-500';
       case 'owner':
         return 'bg-gradient-to-r from-purple-500 to-pink-500';
       case 'manager':
@@ -401,6 +455,48 @@ const UserManagement = () => {
       default:
         return 'bg-gray-500';
     }
+  };
+
+  // Get available role options based on current user role
+  const getRoleOptions = () => {
+    if (currentUserRole === 'admin') {
+      // Admin can create/edit all roles except admin
+      return [
+        { value: 'staff', label: 'Staff' },
+        { value: 'manager', label: 'Manager' },
+        { value: 'owner', label: 'Owner' }
+      ];
+    } else if (currentUserRole === 'owner') {
+      // Owner can create/edit only manager and staff
+      return [
+        { value: 'staff', label: 'Staff' },
+        { value: 'manager', label: 'Manager' }
+      ];
+    }
+    return [{ value: 'staff', label: 'Staff' }];
+  };
+
+  // Get filter role options
+  const getFilterRoleOptions = () => {
+    const baseOptions = [{ value: 'all', label: 'All Roles' }];
+    
+    if (currentUserRole === 'admin') {
+      return [
+        ...baseOptions,
+        { value: 'admin', label: 'Admin' },
+        { value: 'owner', label: 'Owner' },
+        { value: 'manager', label: 'Manager' },
+        { value: 'staff', label: 'Staff' }
+      ];
+    } else if (currentUserRole === 'owner') {
+      return [
+        ...baseOptions,
+        { value: 'owner', label: 'Owner' },
+        { value: 'manager', label: 'Manager' },
+        { value: 'staff', label: 'Staff' }
+      ];
+    }
+    return [...baseOptions, { value: 'staff', label: 'Staff' }];
   };
 
   const userStats = [
@@ -429,6 +525,16 @@ const UserManagement = () => {
       color: 'red' 
     }
   ];
+
+  // Add admin stat if current user is admin
+  if (currentUserRole === 'admin') {
+    userStats.splice(1, 0, {
+      icon: Shield,
+      label: 'Admins',
+      value: users.filter(u => u.role === 'admin').length,
+      color: 'red'
+    });
+  }
 
   if (loading) {
     return (
@@ -481,11 +587,11 @@ const UserManagement = () => {
         subtitle="Manage staff & team"
         showAddButton={true}
         onAddClick={openAddModal}
-        showAddButtonCondition={user.role === 'owner'}
+        showAddButtonCondition={['admin', 'owner'].includes(currentUserRole)}
       />
 
       {/* Stats Cards */}
-      <StatsCards stats={userStats} columns={4} />
+      <StatsCards stats={userStats} columns={currentUserRole === 'admin' ? 5 : 4} />
 
       {/* Filters & View Controls */}
       <ViewControls
@@ -506,12 +612,7 @@ const UserManagement = () => {
             icon: Filter,
             value: filterRole,
             onChange: setFilterRole,
-            options: [
-              { value: 'all', label: 'All Roles' },
-              { value: 'owner', label: 'Owner' },
-              { value: 'manager', label: 'Manager' },
-              { value: 'staff', label: 'Staff' }
-            ]
+            options: getFilterRoleOptions()
           },
           {
             type: 'select',
@@ -554,8 +655,8 @@ const UserManagement = () => {
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-2 rounded-lg flex-shrink-0">
-                      <User className="w-4 h-4 text-white" />
+                    <div className={`${userData.role === 'admin' ? 'bg-gradient-to-br from-red-400 to-rose-500' : 'bg-gradient-to-br from-amber-400 to-orange-500'} p-2 rounded-lg flex-shrink-0`}>
+                      {userData.role === 'admin' ? <Shield className="w-4 h-4 text-white" /> : <User className="w-4 h-4 text-white" />}
                     </div>
                     <div className="min-w-0">
                       <h3 className="text-sm md:text-base font-bold text-gray-900 truncate">{userData.name}</h3>
@@ -583,8 +684,8 @@ const UserManagement = () => {
                   </div>
                   <button
                     onClick={() => toggleUserStatus(userData._id)}
-                    disabled={userData.role === 'owner'}
-                    className={`w-full px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border ${userData.isActive ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'} ${userData.role === 'owner' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={!canToggleUserStatus(userData)}
+                    className={`w-full px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border ${userData.isActive ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'} ${!canToggleUserStatus(userData) ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {userData.isActive ? 'Active' : 'Inactive'}
                   </button>
@@ -592,14 +693,18 @@ const UserManagement = () => {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-3 border-t border-gray-100">
-                  <button onClick={() => openEditModal(userData)} className="flex-1 px-2 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium flex items-center justify-center gap-1">
+                  <button 
+                    onClick={() => openEditModal(userData)} 
+                    disabled={!canEditUser(userData)}
+                    className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-center gap-1 ${!canEditUser(userData) ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-50 text-blue-600'}`}
+                  >
                     <Edit className="w-3 h-3 md:w-3.5 md:h-3.5" />Edit
                   </button>
-                  {currentUserRole === 'owner' && (
+                  {['admin', 'owner'].includes(currentUserRole) && (
                     <button
                       onClick={() => handleDelete(userData._id)}
-                      disabled={userData.role === 'owner'}
-                      className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-center gap-1 ${userData.role === 'owner' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-50 text-red-600'}`}
+                      disabled={!canDeleteUser(userData)}
+                      className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-center gap-1 ${!canDeleteUser(userData) ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-50 text-red-600'}`}
                     >
                       <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />Delete
                     </button>
@@ -630,8 +735,8 @@ const UserManagement = () => {
                       {/* User Info */}
                       <td className="px-3 md:px-4 py-2 md:py-3">
                         <div className="flex items-center gap-2">
-                          <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-1.5 rounded-lg">
-                            <User className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                          <div className={`${userData.role === 'admin' ? 'bg-gradient-to-br from-red-400 to-rose-500' : 'bg-gradient-to-br from-amber-400 to-orange-500'} p-1.5 rounded-lg`}>
+                            {userData.role === 'admin' ? <Shield className="w-3 h-3 md:w-4 md:h-4 text-white" /> : <User className="w-3 h-3 md:w-4 md:h-4 text-white" />}
                           </div>
                           <div>
                             <p className="font-bold text-gray-900 text-xs md:text-sm">{userData.name}</p>
@@ -670,8 +775,8 @@ const UserManagement = () => {
                         <div className="flex justify-center">
                           <button
                             onClick={() => toggleUserStatus(userData._id)}
-                            disabled={userData.role === 'owner'}
-                            className={`px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg font-bold text-[10px] md:text-xs ${userData.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} ${userData.role === 'owner' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={!canToggleUserStatus(userData)}
+                            className={`px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg font-bold text-[10px] md:text-xs ${userData.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} ${!canToggleUserStatus(userData) ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             {userData.isActive ? 'Active' : 'Inactive'}
                           </button>
@@ -683,16 +788,17 @@ const UserManagement = () => {
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => openEditModal(userData)}
-                            className="p-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
+                            disabled={!canEditUser(userData)}
+                            className={`p-1.5 rounded-lg ${!canEditUser(userData) ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}
                             title="Edit"
                           >
                             <Edit className="w-3.5 h-3.5 md:w-4 md:h-4" />
                           </button>
-                          {currentUserRole === 'owner' && (
+                          {['admin', 'owner'].includes(currentUserRole) && (
                             <button
                               onClick={() => handleDelete(userData._id)}
-                              disabled={userData.role === 'owner'}
-                              className={`p-1.5 rounded-lg ${userData.role === 'owner' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}
+                              disabled={!canDeleteUser(userData)}
+                              className={`p-1.5 rounded-lg ${!canDeleteUser(userData) ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}
                               title="Delete"
                             >
                               <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
@@ -812,8 +918,9 @@ const UserManagement = () => {
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
                     >
-                      <option value="staff">Staff</option>
-                      <option value="manager">Manager</option>
+                      {getRoleOptions().map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
                     </select>
                   </div>
 

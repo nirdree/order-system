@@ -15,31 +15,43 @@ export async function PUT(req, { params }) {
       return errorResponse('Invalid user role', 403);
     }
 
-    const { id } =await params;
+    const { id } = await params;
 
     const targetUser = await User.findById(id);
     if (!targetUser) {
       return errorResponse('User not found', 404);
     }
 
+    // Staff cannot update anyone
     if (currentUser.role === 'staff') {
       return errorResponse('You do not have access', 403);
     }
 
-    if (
-      currentUser.role === 'manager' &&
-      targetUser.role !== 'staff'
-    ) {
-      return errorResponse(
-        'Manager can update staff only',
-        403
-      );
+    // Manager can only update staff
+    if (currentUser.role === 'manager' && targetUser.role !== 'staff') {
+      return errorResponse('Manager can update staff only', 403);
+    }
+
+    // Owner cannot update admin
+    if (currentUser.role === 'owner' && targetUser.role === 'admin') {
+      return errorResponse('Owner cannot update admin users', 403);
     }
 
     const body = await req.json();
 
-    if (body.role && body.role === 'owner') {
+    // Owner cannot change role to admin
+    if (currentUser.role === 'owner' && body.role === 'admin') {
+      return errorResponse('Owner cannot assign admin role', 403);
+    }
+
+    // Owner cannot change role to owner
+    if (currentUser.role === 'owner' && body.role === 'owner' && targetUser.role !== 'owner') {
       return errorResponse('Cannot assign owner role', 403);
+    }
+
+    // Admin cannot change role to admin (optional)
+    if (currentUser.role === 'admin' && body.role === 'admin' && targetUser.role !== 'admin') {
+      return errorResponse('Cannot assign admin role', 403);
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -62,32 +74,41 @@ export async function PUT(req, { params }) {
   }
 }
 
-
 export async function DELETE(req, { params }) {
   try {
     await connectDB();
 
     const currentUser = await authenticate(req);
 
-    if (!currentUser?.role || currentUser.role !== 'owner') {
-      return errorResponse(
-        'Only owner can delete users',
-        403
-      );
+    if (!currentUser?.role) {
+      return errorResponse('Unauthorized', 403);
     }
 
-    const { id } =await params;
+    // Only admin and owner can delete
+    if (!['admin', 'owner'].includes(currentUser.role)) {
+      return errorResponse('Only admin or owner can delete users', 403);
+    }
+
+    const { id } = await params;
 
     const user = await User.findById(id);
     if (!user) {
       return errorResponse('User not found', 404);
     }
 
-    if (user.role === 'owner') {
-      return errorResponse(
-        'Cannot delete owner account',
-        403
-      );
+    // Owner cannot delete admin
+    if (currentUser.role === 'owner' && user.role === 'admin') {
+      return errorResponse('Owner cannot delete admin users', 403);
+    }
+
+    // Owner cannot delete owner
+    if (currentUser.role === 'owner' && user.role === 'owner') {
+      return errorResponse('Cannot delete owner account', 403);
+    }
+
+    // Admin cannot delete admin (optional)
+    if (currentUser.role === 'admin' && user.role === 'admin') {
+      return errorResponse('Cannot delete admin account', 403);
     }
 
     await User.findByIdAndDelete(id);

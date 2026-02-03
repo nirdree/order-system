@@ -19,7 +19,7 @@ export async function GET(request) {
       );
     }
 
-    if (user.role !== 'owner' && user.role !== 'manager') {
+    if (user.role !== 'owner' && user.role !== 'manager' && user.role !== 'admin') {
       return Response.json(
         { success: false, error: 'Only owner or manager can access dashboard' },
         { status: 403 }

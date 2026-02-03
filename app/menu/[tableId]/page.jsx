@@ -1,9 +1,9 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import {
-  Plus, ChevronDown, Clock, CheckCircle, AlertCircle, Loader, 
-  Eye, TrendingUp, Users, IndianRupee, UtensilsCrossed, X, 
-  ShoppingBag, Trash2, Package, Utensils, Minus, ShoppingCart, 
+  Plus, ChevronDown, Clock, CheckCircle, AlertCircle, Loader,
+  Eye, TrendingUp, Users, IndianRupee, UtensilsCrossed, X,
+  ShoppingBag, Trash2, Package, Utensils, Minus, ShoppingCart,
   Send, Receipt, Edit2, MapPin
 } from 'lucide-react';
 import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI, customerAPI, categoriesAPI } from '@/lib/api-client';
@@ -74,7 +74,7 @@ const OrderManagementDashboard = () => {
     try {
       setIsLoading(true);
       const response = await sessionsAPI.getSessionByTableId(selectedTable._id);
-      
+
       if (response.success) {
         setSession(response.data);
       }
@@ -90,7 +90,7 @@ const OrderManagementDashboard = () => {
     try {
       setIsLoadingCategories(true);
       const response = await categoriesAPI.getAllCategories();
-      
+
       if (response.success) {
         setCategories([{ _id: 'all', id: 'all', icon: 'list', imgURL: '', description: 'All Items' }, ...(response.data || [])]);
       }
@@ -105,7 +105,7 @@ const OrderManagementDashboard = () => {
     try {
       setIsLoadingMenuItems(true);
       const response = await menuItemsAPI.getAllMenuItems();
-      
+
       if (response.success) {
         setMenuItems(response.data || []);
       }
@@ -129,7 +129,7 @@ const OrderManagementDashboard = () => {
       }
 
       setIsGettingLocation(true);
-      
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const location = {
@@ -145,8 +145,8 @@ const OrderManagementDashboard = () => {
         (error) => {
           setIsGettingLocation(false);
           let errorMessage = '';
-          
-          switch(error.code) {
+
+          switch (error.code) {
             case error.PERMISSION_DENIED:
               errorMessage = 'Location access denied. Please enable location permissions to place an order.';
               break;
@@ -159,7 +159,7 @@ const OrderManagementDashboard = () => {
             default:
               errorMessage = 'An unknown error occurred while getting location.';
           }
-          
+
           setLocationError(errorMessage);
           reject(new Error(errorMessage));
         },
@@ -214,7 +214,7 @@ const OrderManagementDashboard = () => {
   const placeOrderWithLocation = async (location) => {
     try {
       setIsLoading(true);
-      
+
       const items = Object.entries(cart).map(([itemId, quantity]) => ({
         menuItemId: itemId,
         quantity
@@ -239,7 +239,10 @@ const OrderManagementDashboard = () => {
         showNotification('success', 'Order placed successfully');
         setCart({});
         setShowMenuView(false);
-        localStorage.setItem('token', orderResponse?.data?.token);
+        const newToken = orderResponse?.data?.token;
+        if (newToken) {
+          localStorage.setItem('token', newToken);
+        }
         await loadTableData();
         await loadSession();
       } else {
@@ -269,9 +272,8 @@ const OrderManagementDashboard = () => {
     <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50">
       {/* Notification */}
       {notification.show && (
-        <div className={`fixed top-4 right-4 z-[10000] animate-slide-in ${
-          notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        } text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm`}>
+        <div className={`fixed top-4 right-4 z-[10000] animate-slide-in ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+          } text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm`}>
           {notification.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           <span className="font-medium">{notification.message}</span>
         </div>
@@ -370,9 +372,8 @@ const OrderManagementDashboard = () => {
                         onClick={() => setSelectedCategory(cat.id)}
                         className="flex-shrink-0 flex flex-col items-center gap-1.5 transition-transform hover:scale-105"
                       >
-                        <div className={`w-14 h-14 rounded-full overflow-hidden border-2 transition ${
-                          selectedCategory === cat.id ? 'border-amber-500 shadow-md' : 'border-gray-200'
-                        }`}>
+                        <div className={`w-14 h-14 rounded-full overflow-hidden border-2 transition ${selectedCategory === cat.id ? 'border-amber-500 shadow-md' : 'border-gray-200'
+                          }`}>
                           {cat.imgURL ? (
                             <img src={cat.imgURL} alt={cat.id} className="w-full h-full object-cover" />
                           ) : (
@@ -381,9 +382,8 @@ const OrderManagementDashboard = () => {
                             </div>
                           )}
                         </div>
-                        <p className={`text-xs font-semibold max-w-[60px] truncate ${
-                          selectedCategory === cat.id ? 'text-amber-600' : 'text-gray-700'
-                        }`}>
+                        <p className={`text-xs font-semibold max-w-[60px] truncate ${selectedCategory === cat.id ? 'text-amber-600' : 'text-gray-700'
+                          }`}>
                           {cat.description || cat.id}
                         </p>
                       </button>
@@ -490,8 +490,8 @@ const OrderManagementDashboard = () => {
               )}
               <div className="flex gap-2">
                 {session && (
-                  <button 
-                    onClick={() => setShowMenuView(false)} 
+                  <button
+                    onClick={() => setShowMenuView(false)}
                     className="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-lg font-semibold text-sm text-gray-700 hover:bg-gray-50"
                   >
                     Back
@@ -560,11 +560,10 @@ const OrderManagementDashboard = () => {
                               </p>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <p className={`px-3 py-1.5 rounded-lg text-xs font-bold border cursor-pointer ${
-                                order.orderStatus === 'pending' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                order.orderStatus === 'preparing' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                'bg-green-50 text-green-700 border-green-200'
-                              }`}>{order.orderStatus}</p>
+                              <p className={`px-3 py-1.5 rounded-lg text-xs font-bold border cursor-pointer ${order.orderStatus === 'pending' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                                  order.orderStatus === 'preparing' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                    'bg-green-50 text-green-700 border-green-200'
+                                }`}>{order.orderStatus}</p>
                             </div>
                           </div>
 
@@ -620,12 +619,12 @@ const OrderManagementDashboard = () => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-2">
-                  <button 
-                    onClick={() => { 
-                      setShowMenuView(true); 
-                      if (!menuItems.length) loadMenuItems(); 
-                      if (!categories.length) loadCategories(); 
-                    }} 
+                  <button
+                    onClick={() => {
+                      setShowMenuView(true);
+                      if (!menuItems.length) loadMenuItems();
+                      if (!categories.length) loadCategories();
+                    }}
                     className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 text-sm"
                   >
                     <Plus className="w-5 h-5" />New Order

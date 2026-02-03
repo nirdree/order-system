@@ -5,6 +5,7 @@ import Table from '@/models/Table';
 import MenuItem from '@/models/MenuItem';
 import Settings from '@/models/Settings';
 import { successResponse, errorResponse } from '@/lib/apiResponse';
+import { generateToken } from '@/middleware/auth';
 export const runtime = 'nodejs';
 
 // Helper function to calculate distance between two coordinates using Haversine formula
@@ -60,7 +61,7 @@ export async function POST(req) {
     }
 
     // Validate that settings has location data
-    if (!settings.locationLatitude || !settings.locationLongitude) {
+    if (!settings.locationLatitude || !settings.locationLongitude || !settings.locationAccuracy) {
       return errorResponse('Online location is not set. Please contact restaurant admin.', 400);
     }
 
@@ -73,7 +74,7 @@ export async function POST(req) {
     );
 
     // Check if customer is within 50 meters of restaurant
-    const MAX_DISTANCE = 50; // 50 meters
+    const MAX_DISTANCE = settings.locationAccuracy || 50; // 50 meters
     if (distance > MAX_DISTANCE) {
       return errorResponse(
         `You must be within ${MAX_DISTANCE} meters of the restaurant to place an order. Current distance: ${Math.round(distance)} meters.`,
@@ -229,7 +230,7 @@ export async function POST(req) {
       .populate('table', 'tableNumber floorNumber')
       .populate('items.menuItem', 'name price imgURL preparationTime');
 
-    // Prepare response - include token only if session is new or didn't have one previously
+    // Prepare response
     const response = {
       order: populatedOrder,
       session: {
@@ -241,9 +242,9 @@ export async function POST(req) {
       distance: Math.round(distance)
     };
 
-    // Add token to response only if it's a new session or we just generated one
-    if (isNewSession || generatedToken) {
-      response.token = generatedToken || session.token;
+    // Add token to response only if it was generated and is not undefined
+    if (generatedToken !== undefined && generatedToken !== null) {
+      response.token = generatedToken;
     }
 
     return successResponse(
