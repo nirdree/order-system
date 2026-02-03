@@ -19,7 +19,7 @@ export async function PUT(req, { params }) {
       return errorResponse('Invalid user role', 403);
     }
 
-    if (!['staff', 'manager', 'owner'].includes(currentUser.role)) {
+    if (!['staff', 'manager', 'owner',,'admin'].includes(currentUser.role)) {
       return errorResponse('You do not have access', 403);
     }
 
@@ -116,7 +116,7 @@ export async function DELETE(req, { params }) {
       return errorResponse('Invalid user role', 403);
     }
 
-    if (!['staff', 'manager', 'owner'].includes(currentUser.role)) {
+    if (!['staff', 'manager', 'owner','admin'].includes(currentUser.role)) {
       return errorResponse('You do not have access', 403);
     }
 

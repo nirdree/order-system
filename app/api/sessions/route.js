@@ -75,7 +75,7 @@ export async function POST(req) {
     }
 
     // Only staff, manager, and owner can create sessions
-    if (!['staff', 'manager', 'owner'].includes(currentUser.role)) {
+    if (!['staff', 'manager', 'owner',,'admin'].includes(currentUser.role)) {
       return errorResponse('You do not have access to create sessions', 403);
     }
 
