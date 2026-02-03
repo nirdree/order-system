@@ -1223,7 +1223,7 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
 };
 
 // ============= MAIN DASHBOARD COMPONENT =============
-const OrderManagementDashboard = () => {
+const TableOrderManagementDashboard = () => {
   const [tables, setTables] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [completedSessions, setCompletedSessions] = useState([]);
@@ -1627,4 +1627,4 @@ const OrderManagementDashboard = () => {
   );
 };
 
-export default OrderManagementDashboard;
+export default TableOrderManagementDashboard;
