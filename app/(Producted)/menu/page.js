@@ -1444,8 +1444,8 @@ const MenuDashboard = () => {
                       }`}
                   >
                     <option value="">Select Category</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.id}</option>
+                    {categories.map((cat, idx) => (
+                      <option key={`${cat.id}-${idx}`} value={cat.id}>{cat.id}</option>
                     ))}
                   </select>
                   {errors.category && touched.category && (

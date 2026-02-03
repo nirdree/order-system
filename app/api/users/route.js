@@ -35,9 +35,11 @@ export async function GET(req) {
       filter = {};
     }
 
-    const users = await User.find(filter).select(
-      'name email role phone salary joiningDate isActive'
-    );
+    // Use lean() to get plain JS objects - much faster
+    const users = await User.find(filter)
+      .select('name email role phone salary joiningDate isActive')
+      .lean()
+      .exec();
 
     return successResponse(
       users,

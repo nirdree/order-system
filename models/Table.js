@@ -37,5 +37,7 @@ const tableSchema = new mongoose.Schema({
 // Index for faster queries (tableNumber has unique: true so no need for explicit index)
 tableSchema.index({ floorNumber: 1 });
 tableSchema.index({ status: 1 });
+tableSchema.index({ isActive: 1 });
+tableSchema.index({ createdAt: -1 });
 
 export default mongoose.models.Table || mongoose.model('Table', tableSchema);

@@ -68,6 +68,12 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
+// Add indexes for faster queries
+// Note: email already has unique: true, so don't create a separate index
+userSchema.index({ role: 1 });
+userSchema.index({ isActive: 1 });
+userSchema.index({ createdAt: -1 });
+
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 export default User;

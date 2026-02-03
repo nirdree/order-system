@@ -35,31 +35,98 @@ export async function GET(request) {
 
     // Default to last 30 days if not provided
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+    
+    const endOfToday = new Date(today);
+    endOfToday.setHours(23, 59, 59, 999); // End of today
+    
     const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+    thirtyDaysAgo.setHours(0, 0, 0, 0); // Start of 30 days ago
     
     const start = startDate ? new Date(startDate) : thirtyDaysAgo;
-    const end = endDate ? new Date(endDate) : today;
+    const end = endDate ? new Date(endDate) : endOfToday;
 
-    // ============= ORDERS METRICS =============
-    const orders = await Order.find({
-      createdAt: { $gte: start, $lte: end }
-    }).populate('items.menuItem');
+    // Set proper time boundaries
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
+    console.log('[Dashboard Stats] Date range:', { start, end });
+
+    // ============= TODAY'S METRICS (For quick stats) =============
+    const todayOrders = await Order.find({
+      createdAt: { $gte: today, $lte: endOfToday }
+    })
+      .select('orderStatus totalAmount items createdAt')
+      .populate('items.menuItem', 'name price category')
+      .lean()
+      .exec();
+
+    let todayRevenue = 0;
+    let todayCompleted = 0;
+
+    todayOrders.forEach(order => {
+      todayRevenue += (order.totalAmount || 0);
+      if (order.orderStatus === 'completed' || order.orderStatus === 'served') {
+        todayCompleted += (order.totalAmount || 0);
+      }
+    });
+
+    console.log('[Dashboard Stats] Today metrics:', {
+      totalOrders: todayOrders.length,
+      revenue: todayRevenue,
+      completed: todayCompleted
+    });
+
+    // ============= ORDERS METRICS (30 day period) =============
+    // Use aggregation pipeline for better performance instead of fetching all documents
+    const orderAggregation = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: start, $lte: end }
+        }
+      },
+      {
+        $group: {
+          _id: '$orderStatus',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
 
     const orderMetrics = {
-      total: orders.length,
-      pending: orders.filter(o => o.orderStatus === 'pending').length,
-      preparing: orders.filter(o => o.orderStatus === 'preparing').length,
-      ready: orders.filter(o => o.orderStatus === 'ready').length,
-      served: orders.filter(o => o.orderStatus === 'served').length,
-      completed: orders.filter(o => o.orderStatus === 'completed').length,
-      cancelled: orders.filter(o => o.orderStatus === 'cancelled').length
+      total: 0,
+      pending: 0,
+      preparing: 0,
+      ready: 0,
+      served: 0,
+      completed: 0,
+      cancelled: 0
     };
 
-    // ============= REVENUE METRICS =============
-    const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
-    const completedRevenue = orders
-      .filter(o => o.orderStatus === 'completed' || o.orderStatus === 'served')
-      .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+    let totalRevenue = 0;
+    let completedRevenue = 0;
+
+    // Fetch only necessary fields using select() - reduces data transfer
+    const orders = await Order.find({
+      createdAt: { $gte: start, $lte: end }
+    })
+      .select('orderStatus totalAmount items createdAt')
+      .populate('items.menuItem', 'name price category')
+      .lean() // Use lean() to get plain JS objects instead of Mongoose docs - much faster
+      .exec();
+
+    // Calculate metrics from aggregation
+    orderAggregation.forEach(({ _id, count }) => {
+      orderMetrics[_id] = count;
+      orderMetrics.total += count;
+    });
+
+    orders.forEach(order => {
+      totalRevenue += (order.totalAmount || 0);
+      if (order.orderStatus === 'completed' || order.orderStatus === 'served') {
+        completedRevenue += (order.totalAmount || 0);
+      }
+    });
 
     const avgOrderValue = orders.length > 0 ? Math.round(totalRevenue / orders.length) : 0;
 
@@ -185,6 +252,13 @@ export async function GET(request) {
     return Response.json({
       success: true,
       data: {
+        // Today's quick stats
+        today: {
+          orders: todayOrders.length,
+          revenue: Math.round(todayRevenue),
+          completed: todayOrders.filter(o => o.orderStatus === 'completed' || o.orderStatus === 'served').length,
+          completedRevenue: Math.round(todayCompleted)
+        },
         orderMetrics,
         revenue: {
           total: Math.round(totalRevenue),

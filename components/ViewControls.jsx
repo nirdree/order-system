@@ -169,7 +169,7 @@ const ViewControls = ({
                 <input
                   type="text"
                   placeholder={searchPlaceholder}
-                  value={searchValue}
+                  value={searchValue ?? ''}
                   onChange={(e) => onSearchChange?.(e.target.value)}
                   className="w-full pl-8 md:pl-9 pr-2.5 md:pr-3 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                 />
@@ -178,7 +178,7 @@ const ViewControls = ({
 
             {/* Dynamic Filters */}
             {filters.map((filter, index) => (
-              <FilterInput key={index} {...filter} />
+              <FilterInput key={`filter-${index}-${filter.value || ''}`} {...filter} />
             ))}
 
             {/* Custom Filters */}
@@ -218,7 +218,7 @@ const FilterInput = ({
         <input
           type="text"
           placeholder={placeholder}
-          value={value}
+          value={value ?? ''}
           onChange={(e) => onChange?.(e.target.value)}
           className="w-full pl-8 md:pl-9 pr-2.5 md:pr-3 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
         />
@@ -230,12 +230,12 @@ const FilterInput = ({
     <div className="relative">
       <Icon className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
       <select
-        value={value}
+        value={value ?? ''}
         onChange={(e) => onChange?.(e.target.value)}
         className="w-full pl-8 md:pl-9 pr-8 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer"
       >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
+        {options.map((option, idx) => (
+          <option key={`${option.value}-${idx}`} value={option.value}>
             {option.label}
           </option>
         ))}

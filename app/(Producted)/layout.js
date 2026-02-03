@@ -23,6 +23,14 @@ export default function OwnerLayout({ children }) {
   const [open, setOpen] = useState(false);
   const { user, loading, logout } = useUser();
 
+  // Redirect to login when user is not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      // perform navigation after render to avoid updating Router during render
+      router.push('/login');
+    }
+  }, [loading, user, router]);
+
   /* ===============================
      BLOCK PRERENDER UNTIL USER LOADS
      =============================== */
@@ -35,10 +43,10 @@ export default function OwnerLayout({ children }) {
   }
 
   /* ===============================
-     PROTECT ROUTE
+     PROTECT ROUTE (render guard)
      =============================== */
-  if (!user) {
-    router.push('/login');
+  if (!user && !loading) {
+    // Return null while redirecting (useEffect will handle navigation)
     return null;
   }
 

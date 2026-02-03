@@ -16,9 +16,12 @@ export async function GET(req) {
       return errorResponse('Invalid user role', 403);
     }
 
-
-
-    const tables = await Table.find({}).sort({ floorNumber: 1, tableNumber: 1 });
+    // Use lean() for better performance and select only needed fields
+    const tables = await Table.find({})
+      .select('tableNumber floorNumber status capacity createdAt')
+      .sort({ floorNumber: 1, tableNumber: 1 })
+      .lean()
+      .exec();
 
     return successResponse(
       tables,

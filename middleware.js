@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getClientId, checkRateLimit, createRateLimitResponse, addRateLimitHeaders, RATE_LIMITS } from './lib/rate-limit.js';
 
 // Simple token validation for edge runtime (no crypto verification)
 function validateTokenFormat(token) {
@@ -20,6 +21,35 @@ function validateTokenFormat(token) {
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
+  // Get client identifier for rate limiting
+  const clientId = getClientId(request);
+
+  // Apply rate limiting to API routes
+  if (pathname.startsWith('/api/')) {
+    // Determine rate limit config based on endpoint
+    let rateLimitConfig = RATE_LIMITS.api;
+    
+    if (pathname.includes('/auth/login')) {
+      rateLimitConfig = RATE_LIMITS.login;
+    } else if (pathname.includes('/auth/signup')) {
+      rateLimitConfig = RATE_LIMITS.signup;
+    } else if (pathname.includes('/auth/')) {
+      rateLimitConfig = RATE_LIMITS.auth;
+    } else if (request.method !== 'GET') {
+      // POST/PUT/DELETE operations - use stricter write limits
+      rateLimitConfig = RATE_LIMITS.write;
+    } else {
+      // GET operations - use read limits
+      rateLimitConfig = RATE_LIMITS.read;
+    }
+
+    const rateLimitCheck = checkRateLimit(clientId, rateLimitConfig);
+    
+    if (!rateLimitCheck.allowed) {
+      return createRateLimitResponse(rateLimitCheck.remaining, rateLimitCheck.resetTime, rateLimitCheck.retryAfter);
+    }
+  }
+
   // Public routes (no auth required)
   const publicRoutes = ['/menu'];
 
@@ -34,7 +64,10 @@ export async function middleware(request) {
 
   // Allow public routes without authentication
   if (publicRoutes.some(route => pathname.startsWith(route))) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    // Add cache headers for static content
+    response.headers.set('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+    return response;
   }
 
   // If route is protected ensure token is present and valid
@@ -119,7 +152,20 @@ export async function middleware(request) {
     }
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  
+  // Add security and performance headers
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Cache static assets
+  if (pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+    response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+  }
+  
+  return response;
 }
 
 export const config = {

@@ -21,21 +21,26 @@ import {
 } from 'lucide-react';
 import { dashboardAPI } from '@/lib/api-client';
 
+// Initialize Chart.js with all required components
+import '@/lib/chartSetup';
+
 import dynamic from 'next/dynamic';
-import 'chart.js/auto';
 import PageHeader from '@/components/PageHeader';
 import StatsCards from '@/components/StatsCards';
 
 const Line = dynamic(() => import('react-chartjs-2').then((mod) => mod.Line), {
   ssr: false,
+  loading: () => <div>Loading chart...</div>,
 });
 
 const Bar = dynamic(() => import('react-chartjs-2').then((mod) => mod.Bar), {
   ssr: false,
+  loading: () => <div>Loading chart...</div>,
 });
 
 const Pie = dynamic(() => import('react-chartjs-2').then((mod) => mod.Pie), {
   ssr: false,
+  loading: () => <div>Loading chart...</div>,
 });
 
 // ============= CHART COMPONENTS (Dynamic) =============
@@ -207,13 +212,13 @@ export default function OwnerDashboard() {
   const userStats = [
     {
       icon: ShoppingBag,
-      label: 'Total Orders',
+      label: 'Total Orders (30d)',
       value: dashboardData.orderMetrics.total,
       color: 'blue'
     },
     {
       icon: Clock,
-      label: 'Pending Orders',
+      label: 'Pending',
       value: dashboardData.orderMetrics.pending,
       color: 'yellow'
     },
@@ -225,8 +230,8 @@ export default function OwnerDashboard() {
     },
     {
       icon: CheckCircle,
-      label: 'Ready',
-      value: dashboardData.orderMetrics.ready,
+      label: 'Completed',
+      value: dashboardData.orderMetrics.completed,
       color: 'green'
     },
     {
@@ -242,6 +247,34 @@ export default function OwnerDashboard() {
       color: 'blue'
     }
   ];
+
+  // Today's stats cards
+  const todayStats = dashboardData.today ? [
+    {
+      icon: ShoppingBag,
+      label: "Today's Orders",
+      value: dashboardData.today.orders,
+      color: 'blue'
+    },
+    {
+      icon: Wallet,
+      label: "Today's Revenue",
+      value: `₹${(dashboardData.today.revenue / 1000).toFixed(1)}k`,
+      color: 'green'
+    },
+    {
+      icon: CheckCircle,
+      label: "Today's Completed",
+      value: dashboardData.today.completed,
+      color: 'green'
+    },
+    {
+      icon: Users,
+      label: 'Active Sessions',
+      value: dashboardData.sessions.active,
+      color: 'purple'
+    }
+  ] : [];
  
 
 
@@ -258,8 +291,14 @@ export default function OwnerDashboard() {
             />
         
 
-        {/* Stats Cards */}
-        <StatsCards stats={userStats} columns={6} />
+
+
+        {/* Today's Quick Stats */}
+        {todayStats.length > 0 && (
+
+            <StatsCards stats={todayStats} columns={4} />
+          
+        )}
 
         {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -318,11 +318,11 @@ const PokketCafeLanding = () => {
       <section id="menu" className="py-12 px-6 bg-white/50 backdrop-blur-sm sticky top-20 z-40 shadow-lg">
         <div className="max-w-7xl mx-auto">
           <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-            {categories.map((cat) => {
+            {categories.map((cat, idx) => {
               const Icon = cat.icon;
               return (
                 <button
-                  key={cat.id}
+                  key={`${cat.id}-${idx}`}
                   onClick={() => setActiveCategory(cat.id)}
                   className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold whitespace-nowrap transition-all duration-300 ${
                     activeCategory === cat.id

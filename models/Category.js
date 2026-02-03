@@ -28,5 +28,6 @@ const categorySchema = new mongoose.Schema({
 
 // Index for faster queries
 categorySchema.index({ id: 1 });
+categorySchema.index({ createdAt: -1 });
 
 export default mongoose.models.Category || mongoose.model('Category', categorySchema);

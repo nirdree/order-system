@@ -338,29 +338,126 @@ export default function OrdersPage() {
   };
 
   const handleStatusChange = async (orderId, newStatus) => {
+    // Find the order being updated
+    const orderToUpdate = orders.find(o => o._id === orderId);
+    if (!orderToUpdate) return;
+
+    const oldStatus = orderToUpdate.orderStatus;
+
+    // Optimistic update - update UI immediately
+    setOrders(prev =>
+      prev.map(o =>
+        o._id === orderId ? { ...o, orderStatus: newStatus } : o
+      )
+    );
+
+    // Close modal if open
+    if (selectedOrder?._id === orderId) {
+      setSelectedOrder(prev => prev ? { ...prev, orderStatus: newStatus } : null);
+    }
+
     try {
       const data = await ordersAPI.updateOrderStatus(orderId, newStatus);
 
       if (data.success) {
+        // Update metrics
+        const updatedOrders = orders.map(o =>
+          o._id === orderId ? { ...o, orderStatus: newStatus } : o
+        );
+        const stats = {
+          total: updatedOrders.length,
+          pending: updatedOrders.filter(o => o.orderStatus === 'pending').length,
+          preparing: updatedOrders.filter(o => o.orderStatus === 'preparing').length,
+          ready: updatedOrders.filter(o => o.orderStatus === 'ready').length,
+          served: updatedOrders.filter(o => o.orderStatus === 'served').length,
+          completed: updatedOrders.filter(o => o.orderStatus === 'completed').length,
+          cancelled: updatedOrders.filter(o => o.orderStatus === 'cancelled').length
+        };
+        setMetrics(stats);
         showNotification('success', 'Order status updated');
-        await loadOrders();
+      } else {
+        // Revert on failure
+        setOrders(prev =>
+          prev.map(o =>
+            o._id === orderId ? { ...o, orderStatus: oldStatus } : o
+          )
+        );
+        if (selectedOrder?._id === orderId) {
+          setSelectedOrder(prev => prev ? { ...prev, orderStatus: oldStatus } : null);
+        }
+        showNotification('error', 'Failed to update status');
       }
     } catch (err) {
       console.error('Error updating order:', err);
+      // Revert on error
+      setOrders(prev =>
+        prev.map(o =>
+          o._id === orderId ? { ...o, orderStatus: oldStatus } : o
+        )
+      );
+      if (selectedOrder?._id === orderId) {
+        setSelectedOrder(prev => prev ? { ...prev, orderStatus: oldStatus } : null);
+      }
       showNotification('error', 'Failed to update status');
     }
   };
 
   const handleCancelOrder = async (orderId) => {
+    // Find the order being cancelled
+    const orderToCancel = orders.find(o => o._id === orderId);
+    if (!orderToCancel) return;
+
+    const oldStatus = orderToCancel.orderStatus;
+
+    // Optimistic update - update UI immediately
+    setOrders(prev =>
+      prev.map(o =>
+        o._id === orderId ? { ...o, orderStatus: 'cancelled' } : o
+      )
+    );
+
+    // Close modal
+    if (selectedOrder?._id === orderId) {
+      setSelectedOrder(null);
+      setIsModalOpen(false);
+    }
+
     try {
       const data = await ordersAPI.updateOrderStatus(orderId, 'cancelled');
 
       if (data.success) {
+        // Update metrics
+        const updatedOrders = orders.map(o =>
+          o._id === orderId ? { ...o, orderStatus: 'cancelled' } : o
+        );
+        const stats = {
+          total: updatedOrders.length,
+          pending: updatedOrders.filter(o => o.orderStatus === 'pending').length,
+          preparing: updatedOrders.filter(o => o.orderStatus === 'preparing').length,
+          ready: updatedOrders.filter(o => o.orderStatus === 'ready').length,
+          served: updatedOrders.filter(o => o.orderStatus === 'served').length,
+          completed: updatedOrders.filter(o => o.orderStatus === 'completed').length,
+          cancelled: updatedOrders.filter(o => o.orderStatus === 'cancelled').length
+        };
+        setMetrics(stats);
         showNotification('success', 'Order cancelled');
-        await loadOrders();
+      } else {
+        // Revert on failure
+        setOrders(prev =>
+          prev.map(o =>
+            o._id === orderId ? { ...o, orderStatus: oldStatus } : o
+          )
+        );
+        showNotification('error', 'Failed to cancel order');
       }
     } catch (err) {
       console.error('Error cancelling order:', err);
+      // Revert on error
+      setOrders(prev =>
+        prev.map(o =>
+          o._id === orderId ? { ...o, orderStatus: oldStatus } : o
+        )
+      );
       showNotification('error', 'Failed to cancel order');
     }
   };

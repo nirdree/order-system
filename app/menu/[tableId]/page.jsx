@@ -366,9 +366,9 @@ const OrderManagementDashboard = () => {
                   {isLoadingCategories ? (
                     <Loader className="w-5 h-5 text-amber-600 animate-spin" />
                   ) : (
-                    categories.map(cat => (
+                    categories.map((cat, idx) => (
                       <button
-                        key={cat._id}
+                        key={`${cat._id}-${idx}`}
                         onClick={() => setSelectedCategory(cat.id)}
                         className="flex-shrink-0 flex flex-col items-center gap-1.5 transition-transform hover:scale-105"
                       >

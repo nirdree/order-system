@@ -30,7 +30,7 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
   const [cart, setCart] = useState({});
   const [isLoadingMenuItems, setIsLoadingMenuItems] = useState(false);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('__all__');
   const [showDeleteOrderConfirm, setShowDeleteOrderConfirm] = useState(null);
 
   // Item Management States
@@ -95,7 +95,10 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
       const response = await categoriesAPI.getAllCategories();
 
       if (response.success) {
-        setCategories([{ id: 'all', icon: 'list', imgURL: '', description: 'All Items' }, ...(response.data || [])]);
+        setCategories([
+          { id: '__all__', icon: 'list', imgURL: '', description: 'All Items' }, 
+          ...(response.data || [])
+        ]);
       }
     } catch (error) {
       console.error('Error loading categories:', error);
@@ -324,11 +327,15 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
       if (response.success) {
         showNotification('success', 'Session completed successfully');
         setShowCompleteConfirm(false);
-        onUpdate();
+        // Await parent update to refresh table data before closing
+        await onUpdate();
         onClose();
+      } else {
+        showNotification('error', response.message || 'Failed to complete session');
       }
     } catch (error) {
       console.error('Error completing session:', error);
+      showNotification('error', 'Failed to complete session');
     } finally {
       setIsLoading(false);
     }
@@ -341,11 +348,15 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
       if (response.success) {
         showNotification('success', 'Session cancelled successfully');
         setShowCancelConfirm(false);
-        onUpdate();
+        // Await parent update to refresh table data before closing
+        await onUpdate();
         onClose();
+      } else {
+        showNotification('error', response.message || 'Failed to cancel session');
       }
     } catch (error) {
       console.error('Error cancelling session:', error);
+      showNotification('error', 'Failed to cancel session');
     } finally {
       setIsLoading(false);
     }
@@ -362,7 +373,7 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
   }, 0);
   const cartItemsCount = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
   const filteredMenuItems = menuItems.filter(item => {
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    const matchesCategory = selectedCategory === '__all__' || item.category === selectedCategory;
     const matchesSearch = item.name.toLowerCase().includes(menuSearchTerm.toLowerCase()) || 
                           item.description?.toLowerCase().includes(menuSearchTerm.toLowerCase());
     return matchesCategory && item.available && matchesSearch;
@@ -386,7 +397,10 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
             <h2 className="text-lg md:text-xl font-bold text-white">Table ID {table._id}</h2>
             <p className="text-white/90 text-xs md:text-sm">Floor {table.floorNumber} • {table.capacity} seats</p>
           </div>
-          <button onClick={onClose} className="p-1.5 md:p-2 hover:bg-white/20 rounded-lg transition">
+          <button onClick={() => {
+            onUpdate();
+            onClose();
+          }} className="p-1.5 md:p-2 hover:bg-white/20 rounded-lg transition">
             <X className="w-4 h-4 md:w-5 md:h-5 text-white" />
           </button>
         </div>

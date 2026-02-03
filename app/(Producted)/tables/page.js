@@ -320,48 +320,78 @@ const TableManagement = () => {
 
   const toggleTableStatus = async (tableId) => {
     const table = tables.find(t => t._id === tableId);
+    const newStatus = table.status === 'available' ? 'occupied' : 'available';
+    
+    // Optimistic update - update UI immediately
+    setTables(prev =>
+      prev.map(t =>
+        t._id === tableId ? { ...t, status: newStatus } : t
+      )
+    );
 
     try {
-      setIsLoading(true);
-      const response = await tablesAPI.updateTable(tableId, {
-        status: table.status === 'available' ? 'occupied' : 'available'
-      });
+      const response = await tablesAPI.updateTable(tableId, { status: newStatus });
 
       if (response.success) {
         showNotification('success', `Table status updated successfully`);
-        await loadTables();
       } else {
         showNotification('error', response.message || 'Failed to update table status');
+        // Revert on failure
+        setTables(prev =>
+          prev.map(t =>
+            t._id === tableId ? { ...t, status: table.status } : t
+          )
+        );
       }
     } catch (error) {
       console.error('Error toggling table status:', error);
       showNotification('error', 'Failed to update table status');
-    } finally {
-      setIsLoading(false);
+      // Revert on error
+      setTables(prev =>
+        prev.map(t =>
+          t._id === tableId ? { ...t, status: table.status } : t
+        )
+      );
     }
   };
 
   // Toggle QR Orders (isActive)
   const toggleQROrders = async (tableId) => {
     const table = tables.find(t => t._id === tableId);
+    const newIsActive = !table.isActive;
+    
+    // Optimistic update - update UI immediately
+    setTables(prev =>
+      prev.map(t =>
+        t._id === tableId ? { ...t, isActive: newIsActive } : t
+      )
+    );
 
     try {
-      setIsLoading(true);
       const response = await tablesAPI.updateTable(tableId, {
-        isActive: !table.isActive
+        isActive: newIsActive
       });
 
       if (response.success) {
-        showNotification('success', `QR Orders ${!table.isActive ? 'enabled' : 'disabled'} successfully`);
-        await loadTables();
+        showNotification('success', `QR Orders ${newIsActive ? 'enabled' : 'disabled'} successfully`);
       } else {
         showNotification('error', response.message || 'Failed to update QR Orders status');
+        // Revert on failure
+        setTables(prev =>
+          prev.map(t =>
+            t._id === tableId ? { ...t, isActive: table.isActive } : t
+          )
+        );
       }
     } catch (error) {
       console.error('Error toggling QR Orders:', error);
       showNotification('error', 'Failed to update QR Orders status');
-    } finally {
-      setIsLoading(false);
+      // Revert on error
+      setTables(prev =>
+        prev.map(t =>
+          t._id === tableId ? { ...t, isActive: table.isActive } : t
+        )
+      );
     }
   };
 
