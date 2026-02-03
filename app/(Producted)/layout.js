@@ -11,6 +11,7 @@ import {
   X,
   UtensilsCrossed,
   LogOut,
+  Settings,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -59,11 +60,18 @@ export default function OwnerLayout({ children }) {
           { name: 'User Management', href: '/users', icon: Users },
         ]
       : []),
+    ...(user.role == 'admin'
+      ? [
+          { name: 'Setting', href: '/setting', icon: Settings },
+        ]
+      : []),
+
   ];
 
   const handleLogout = async () => {
     await logout();
     router.push('/login');
+    
   };
 
   return (

@@ -3,9 +3,26 @@ import Order from '@/models/Order';
 import Session from '@/models/Session';
 import Table from '@/models/Table';
 import MenuItem from '@/models/MenuItem';
+import Settings from '@/models/Settings';
 import { successResponse, errorResponse } from '@/lib/apiResponse';
-import { generateToken } from '@/middleware/auth';
 export const runtime = 'nodejs';
+
+// Helper function to calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  const distance = R * c; // Distance in meters
+  return distance;
+}
 
 // POST - Create customer order (No authentication required)
 export async function POST(req) {
@@ -19,10 +36,51 @@ export async function POST(req) {
       customerName,
       customerPhone,
       customerNotes,
+      location,
       token
     } = body;
-
+    
+    const ipAddress = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
+    
     // Validate required fields
+    const isValidLocation = location &&
+      typeof location === 'object' &&
+      location.latitude !== undefined &&
+      location.longitude !== undefined;
+      
+    if (!isValidLocation) {
+      return errorResponse('Valid location is required', 400);
+    }
+
+    // Check if restaurant location is configured in settings
+    const settings = await Settings.findOne({ isActive: true });
+    
+    if (!settings) {
+      return errorResponse('Online location is not set. Please contact restaurant admin.', 400);
+    }
+
+    // Validate that settings has location data
+    if (!settings.locationLatitude || !settings.locationLongitude) {
+      return errorResponse('Online location is not set. Please contact restaurant admin.', 400);
+    }
+
+    // Calculate distance between customer location and restaurant location
+    const distance = calculateDistance(
+      location.latitude,
+      location.longitude,
+      settings.locationLatitude,
+      settings.locationLongitude
+    );
+
+    // Check if customer is within 50 meters of restaurant
+    const MAX_DISTANCE = 50; // 50 meters
+    if (distance > MAX_DISTANCE) {
+      return errorResponse(
+        `You must be within ${MAX_DISTANCE} meters of the restaurant to place an order. Current distance: ${Math.round(distance)} meters.`,
+        403
+      );
+    }
+
     if (!tableId) {
       return errorResponse('Table ID is required', 400);
     }
@@ -54,7 +112,7 @@ export async function POST(req) {
     // If no active session exists, create one
     if (!session) {
       // Generate token for new session
-      generatedToken = await generateToken("0" , "customer");
+      generatedToken = await generateToken("0", "customer");
       isNewSession = true;
 
       session = await Session.create({
@@ -66,7 +124,13 @@ export async function POST(req) {
         initiatedBy: 'customer',
         isCustomerSelfService: true,
         createdBy: null,
-        token: generatedToken
+        token: generatedToken,
+        customerLocation: {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          accuracy: location.accuracy || null,
+          timestamp: new Date()
+        }
       });
 
       // Update table status to occupied
@@ -79,7 +143,7 @@ export async function POST(req) {
 
       // If session exists but no token is assigned, generate and assign one
       if (!session.token) {
-        generatedToken = await generateToken("0" , "customer");
+        generatedToken = await generateToken("0", "customer");
         session.token = generatedToken;
       }
 
@@ -126,10 +190,12 @@ export async function POST(req) {
         specialInstructions: item.specialInstructions || ''
       });
     }
-const orderIdNext = await Order.countDocuments().then(count => count + 1);
+    
+    const orderIdNext = await Order.countDocuments().then(count => count + 1);
+    
     // Create order
     const order = await Order.create({
-       orderId: `Order ID-${orderIdNext}`,
+      orderId: `Order ID-${orderIdNext}`,
       session: session._id,
       table: tableId,
       orderType: 'dine-in',
@@ -140,6 +206,13 @@ const orderIdNext = await Order.countDocuments().then(count => count + 1);
       customerNotes,
       notifyCustomer: !!customerPhone,
       estimatedTime: maxPrepTime,
+      customerLocation: {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        accuracy: location.accuracy || null,
+        distance: Math.round(distance),
+        timestamp: new Date()
+      },
       statusHistory: [{
         status: 'pending',
         timestamp: new Date()
@@ -163,7 +236,9 @@ const orderIdNext = await Order.countDocuments().then(count => count + 1);
         sessionId: session.sessionId,
         tableNumber: session.tableNumber,
         totalAmount: session.totalAmount
-      }
+      },
+      locationVerified: true,
+      distance: Math.round(distance)
     };
 
     // Add token to response only if it's a new session or we just generated one
