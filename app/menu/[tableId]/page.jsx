@@ -38,7 +38,7 @@ const CustomerSelfOrderManagementPage = () => {
 
   // View Mode States for Menu (NEW)
   const [menuViewMode, setMenuViewMode] = useState('grid'); // 'grid' or 'table'
-  const [menuGridColumns, setMenuGridColumns] = useState(3); // 2, 3, or 4 columns for menu
+  const [menuGridColumns, setMenuGridColumns] = useState(4); // 2, 3, or 4 columns for menu
   const [menuSearchTerm, setMenuSearchTerm] = useState(''); // search for menu items
 
   useEffect(() => {
@@ -360,8 +360,8 @@ const CustomerSelfOrderManagementPage = () => {
         {/* Header */}
         <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-3 md:px-5 py-3 md:py-4 flex items-center justify-between flex-shrink-0">
           <div>
-            <h2 className="text-lg md:text-xl font-bold text-white">Table {selectedTable?.tableNumber}</h2>
-            <p className="text-white/90 text-xs md:text-sm">Floor {selectedTable?.floorNumber} • {selectedTable?.capacity} seats</p>
+            <h2 className="text-lg md:text-xl font-bold text-white">{ 'Table Menu'}</h2>
+            <p className="text-white/90 text-xs md:text-sm">Table {selectedTable?.tableNumber}</p>
           </div>
         </div>
 

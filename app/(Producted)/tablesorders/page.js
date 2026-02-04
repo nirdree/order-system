@@ -12,6 +12,7 @@ import PageHeader from '@/components/PageHeader';
 import StatsCards from '@/components/StatsCards';
 import ViewControls from '@/components/ViewControls';
 import BillComponent from '@/components/BillComponent';
+import { useUser } from '@/context/UserContext';
 
 // ============= TABLE DETAIL MODAL COMPONENT =============
 export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
@@ -49,6 +50,7 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
   const [menuGridColumns, setMenuGridColumns] = useState(3); // 2, 3, or 4 columns for menu
   const [menuSearchTerm, setMenuSearchTerm] = useState(''); // search for menu items
 
+   const { user, loading, logout } = useUser();
   useEffect(() => {
     if (isOpen && table) {
       if (table.status === 'occupied') {
@@ -394,7 +396,9 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
         <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-3 md:px-5 py-3 md:py-4 flex items-center justify-between flex-shrink-0">
           <div>
             <h2 className="text-lg md:text-xl font-bold text-white">Table {table.tableNumber}</h2>
-            <h2 className="text-lg md:text-xl font-bold text-white">Table ID {table._id}</h2>
+            { user.role == 'admin' && (
+              <p className="text-white/90 text-xs md:text-sm">Table ID: {table._id}</p>
+            )}
             <p className="text-white/90 text-xs md:text-sm">Floor {table.floorNumber} • {table.capacity} seats</p>
           </div>
           <button onClick={() => {
@@ -724,11 +728,11 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
               <>
                 {/* Session Info */}
                 <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3 md:p-4 mb-3 md:mb-4">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3 text-xs md:text-sm">
-                    <div>
+                  <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-2 text-xs md:text-sm">
+                    {/* <div>
                       <p className="text-gray-600 text-[10px] md:text-xs mb-0.5">Session ID</p>
                       <p className="font-bold text-gray-900 text-xs md:text-sm truncate">{session.sessionId}</p>
-                    </div>
+                    </div> */}
                     <div>
                       <p className="text-gray-600 text-[10px] md:text-xs mb-0.5">Orders</p>
                       <p className="font-bold text-gray-900">{activeOrders.length}</p>
@@ -1149,7 +1153,7 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
         <BillComponent
           session={session}
           table={table}
-          hotelName="Our Cafe"
+          hotelName={user?.settings?.businessName || 'My Cafe'}
           isLoading={isLoading}
           onPrint={() => {
             // Bill print functionality is handled by the component
@@ -1238,6 +1242,7 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
 
 // ============= MAIN DASHBOARD COMPONENT =============
 const TableOrderManagementDashboard = () => {
+   const { user, loading, logout } = useUser();
   const [tables, setTables] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [completedSessions, setCompletedSessions] = useState([]);
@@ -1511,7 +1516,7 @@ const TableOrderManagementDashboard = () => {
                     <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden sm:table-cell">Floor</th>
                     <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden md:table-cell">Capacity</th>
                     <th className="px-3 md:px-4 py-2.5 md:py-3 text-center text-xs md:text-sm font-bold text-gray-700">Status</th>
-                    <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden lg:table-cell">Session</th>
+                    {/* <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden lg:table-cell">Session</th> */}
                     {/* <th className="px-3 md:px-4 py-2.5 md:py-3 text-right text-xs md:text-sm font-bold text-gray-700">Amount</th> */}
                   </tr>
                 </thead>
@@ -1587,13 +1592,13 @@ const TableOrderManagementDashboard = () => {
                           </td>
 
                           {/* Session ID */}
-                          <td className="px-3 md:px-4 py-2 md:py-3 hidden lg:table-cell">
+                          {/* <td className="px-3 md:px-4 py-2 md:py-3 hidden lg:table-cell">
                             {tableSession ? (
                               <span className="text-xs text-gray-700 font-mono">{tableSession.sessionId}</span>
                             ) : (
                               <span className="text-xs text-gray-400">—</span>
                             )}
-                          </td>
+                          </td> */}
 
                           {/* Amount */}
                           {/* <td className="px-3 md:px-4 py-2 md:py-3 text-right">

@@ -479,7 +479,7 @@ const TableManagement = () => {
       pdf.setFontSize(28);
       pdf.setTextColor(234, 88, 12);
       pdf.setFont('helvetica', 'bold');
-      const cafeName = 'My Cafe';
+      const cafeName = user?.settings?.businessName || 'My Cafe';
       const cafeNameWidth = pdf.getTextWidth(cafeName);
       pdf.text(cafeName, (pageWidth - cafeNameWidth) / 2, 30);
 
