@@ -294,11 +294,11 @@ export default function OwnerDashboard() {
 
 
         {/* Today's Quick Stats */}
-        {todayStats.length > 0 && (
+        {/* {todayStats.length > 0 && (
 
             <StatsCards stats={todayStats} columns={4} />
           
-        )}
+        )} */}
 
         {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

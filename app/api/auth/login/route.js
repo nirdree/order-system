@@ -1,5 +1,6 @@
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import Settings from '@/models/Settings';
 import { generateToken } from '@/middleware/auth';
 import { successResponse, errorResponse, handleError } from '@/lib/apiResponse';
 import { cookies } from 'next/headers';
@@ -9,7 +10,7 @@ export const runtime = 'nodejs';
 export async function POST(req) {
   try {
     await connectDB();
-    
+
     const { email, password } = await req.json();
 
     if (!email || !password) {
@@ -17,8 +18,7 @@ export async function POST(req) {
     }
 
     const user = await User.findOne({ email }).select('+password');
-
-    if (!user) {
+    if (!user || !(await user.comparePassword(password))) {
       return errorResponse('Invalid email or password', 401);
     }
 
@@ -26,22 +26,20 @@ export async function POST(req) {
       return errorResponse('Account is deactivated', 401);
     }
 
-    const isPasswordValid = await user.comparePassword(password);
-
-    if (!isPasswordValid) {
-      return errorResponse('Invalid email or password', 401);
-    }
-
     const token = generateToken(user._id, user.role);
 
-    // Set token in secure HTTP-only cookie
     const cookieStore = await cookies();
-    cookieStore.set('authToken', token, {
+    cookieStore.set({
+      name: 'authToken',
+      value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 24 * 60 * 60 // 24 hours
+      maxAge: 60 * 60 * 24, // 1 day
+      path: '/',
     });
+
+    const settings = await Settings.findOne({ isActive: true });
 
     return successResponse(
       {
@@ -50,14 +48,13 @@ export async function POST(req) {
           name: user.name,
           email: user.email,
           role: user.role,
-          phone: user.phone
-        },
-        token
+          phone: user.phone,
+          settings,
+        }
       },
       'Login successful',
       200
     );
-
   } catch (error) {
     return handleError(error);
   }

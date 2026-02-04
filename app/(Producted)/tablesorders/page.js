@@ -1489,11 +1489,11 @@ const TableOrderManagementDashboard = () => {
                         }`}>
                         {isOccupied ? 'Busy' : 'Free'}
                       </div>
-                      {tableSession && (
+                      {/* {tableSession && (
                         <div className="mt-1.5 md:mt-2 text-xs md:text-sm text-gray-700 font-bold">
                           ₹{tableSession.totalAmount?.toFixed(0) || '0'}
                         </div>
-                      )}
+                      )} */}
                     </div>
                   </button>
                 );
@@ -1512,7 +1512,7 @@ const TableOrderManagementDashboard = () => {
                     <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden md:table-cell">Capacity</th>
                     <th className="px-3 md:px-4 py-2.5 md:py-3 text-center text-xs md:text-sm font-bold text-gray-700">Status</th>
                     <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700 hidden lg:table-cell">Session</th>
-                    <th className="px-3 md:px-4 py-2.5 md:py-3 text-right text-xs md:text-sm font-bold text-gray-700">Amount</th>
+                    {/* <th className="px-3 md:px-4 py-2.5 md:py-3 text-right text-xs md:text-sm font-bold text-gray-700">Amount</th> */}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -1596,7 +1596,7 @@ const TableOrderManagementDashboard = () => {
                           </td>
 
                           {/* Amount */}
-                          <td className="px-3 md:px-4 py-2 md:py-3 text-right">
+                          {/* <td className="px-3 md:px-4 py-2 md:py-3 text-right">
                             {tableSession ? (
                               <div className="flex items-center justify-end gap-0.5 md:gap-1">
                                 <IndianRupee className="w-3 h-3 md:w-4 md:h-4 text-amber-600" />
@@ -1607,7 +1607,7 @@ const TableOrderManagementDashboard = () => {
                             ) : (
                               <span className="text-xs text-gray-400">—</span>
                             )}
-                          </td>
+                          </td> */}
                         </tr>
                       );
                     })

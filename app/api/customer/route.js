@@ -102,7 +102,7 @@ export async function POST(req) {
 
     // Check if table is active
     if (!table.isActive) {
-      return errorResponse('This table is not available for ordering', 400);
+      return errorResponse('QR base ordering system is not enabled for this table', 400);
     }
 
     // Find or create active session for this table

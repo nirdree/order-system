@@ -32,13 +32,19 @@ export function UserProvider({ children }) {
     try {
       const data = await authAPI.getCurrentUser();            
       if (data?.success === true && data?.data) {
-        setUser(data.data);
+        // API responses use { success: true, data: { user: { ... } } }
+        // Normalize to set the user object directly.
+        const payload = data.data;
+        const resolvedUser = payload.user ?? payload;
+        setUser(resolvedUser);
       } else if (data?.success === true) {
-        // API returns user data directly, not nested in data.data
+        // Handle responses like { success: true, user: { ... } } or
+        // edge-cases where user fields are at the top-level.
         const userData = { ...data };
         delete userData.success;
         delete userData.message;
-        setUser(userData);
+        // If the API returned { user: { ... } }, unwrap it.
+        setUser(userData.user ?? userData);
       } else if (data?.error || data?.status === 401) {
         // If authentication fails, logout and clear token
         setUser(null);

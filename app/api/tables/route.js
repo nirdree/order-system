@@ -18,7 +18,7 @@ export async function GET(req) {
 
     // Use lean() for better performance and select only needed fields
     const tables = await Table.find({})
-      .select('tableNumber floorNumber status capacity createdAt')
+      .select('tableNumber floorNumber status capacity createdAt isActive location ')
       .sort({ floorNumber: 1, tableNumber: 1 })
       .lean()
       .exec();

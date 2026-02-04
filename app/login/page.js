@@ -147,13 +147,11 @@ const LoginPage = () => {
       }
 
       setUser( data.data.user);
-      // Success - authToken is already set by API as HTTP-only cookie
       setSuccessMessage('Login successful! Redirecting...');
-     console.log('User role:', data.data.user.role);
-      // Redirect after small delay to let cookie be set by API
+     console.log('User :', data.data);
 
         setIsLoading(false);
-        if (data.data.user.role === 'owner' || "admin") {
+        if (data.data.user.role === 'owner' || data.data.user.role === 'admin') {
           router.push('/dashboard');
         } else if (data.data.user.role === 'staff') {
           router.push('/orders');

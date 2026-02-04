@@ -25,6 +25,7 @@ export default function OwnerLayout({ children }) {
 
   // Redirect to login when user is not authenticated
   useEffect(() => {
+    console.log('Loading:', loading, 'User:', user);
     if (!loading && !user) {
       // perform navigation after render to avoid updating Router during render
       router.push('/login');
@@ -89,7 +90,7 @@ export default function OwnerLayout({ children }) {
           =============================== */}
       <aside className="hidden md:flex w-64 bg-white shadow-lg flex-col fixed h-full left-0 top-0">
         <div className="p-6 text-2xl font-bold text-amber-900">
-          Cafe Owner
+           {user?.settings?.businessName}
         </div>
 
         <h1 className="px-6 mb-6 text-sm font-medium">
@@ -144,7 +145,7 @@ export default function OwnerLayout({ children }) {
           <aside className="absolute left-0 top-0 h-full w-64 bg-white shadow-lg z-50 flex flex-col p-4">
             <div className="flex items-center justify-between mb-6">
               <span className="text-lg font-bold text-amber-900">
-                Cafe Owner
+               {user?.settings?.businessName}
               </span>
               <button onClick={() => setOpen(false)}>
                 <X />
@@ -200,7 +201,7 @@ export default function OwnerLayout({ children }) {
             <Menu />
           </button>
           <h1 className="text-lg font-semibold text-amber-900">
-            Cafe Owner
+             {user?.settings?.businessName}
           </h1>
         </div>
 
