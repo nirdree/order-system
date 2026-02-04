@@ -4,12 +4,12 @@ import {
   Plus, ChevronDown, Clock, CheckCircle, AlertCircle, Loader,
   Eye, TrendingUp, Users, IndianRupee, UtensilsCrossed, X,
   ShoppingBag, Trash2, Package, Utensils, Minus, ShoppingCart,
-  Send, Receipt, Edit2, MapPin
+  Send, Receipt, Edit2, MapPin, Search, LayoutGrid, List
 } from 'lucide-react';
 import { sessionsAPI, ordersAPI, tablesAPI, menuItemsAPI, customerAPI, categoriesAPI } from '@/lib/api-client';
 import { useParams } from 'next/navigation';
 
-const OrderManagementDashboard = () => {
+const CustomerSelfOrderManagementPage = () => {
   const params = useParams();
   const tableId = params?.tableId;
 
@@ -35,6 +35,11 @@ const OrderManagementDashboard = () => {
   const [isLoadingMenuItems, setIsLoadingMenuItems] = useState(false);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
+
+  // View Mode States for Menu (NEW)
+  const [menuViewMode, setMenuViewMode] = useState('grid'); // 'grid' or 'table'
+  const [menuGridColumns, setMenuGridColumns] = useState(3); // 2, 3, or 4 columns for menu
+  const [menuSearchTerm, setMenuSearchTerm] = useState(''); // search for menu items
 
   useEffect(() => {
     loadTableData();
@@ -263,44 +268,48 @@ const OrderManagementDashboard = () => {
     return sum + ((item?.price || 0) * qty);
   }, 0);
   const cartItemsCount = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+  
+  // Updated filtering logic with search
   const filteredMenuItems = menuItems.filter(item => {
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    return matchesCategory && item.available;
+    const matchesSearch = item.name.toLowerCase().includes(menuSearchTerm.toLowerCase()) || 
+                          item.description?.toLowerCase().includes(menuSearchTerm.toLowerCase());
+    return matchesCategory && item.available && matchesSearch;
   });
 
   return (
     <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50">
       {/* Notification */}
       {notification.show && (
-        <div className={`fixed top-4 right-4 z-[10000] animate-slide-in ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-          } text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm`}>
-          {notification.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+        <div className={`fixed top-3 right-3 z-[10000] animate-slide-in ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+          } text-white px-3 md:px-4 py-2 md:py-3 rounded-xl shadow-lg flex items-center gap-2 text-xs md:text-sm max-w-sm`}>
+          {notification.type === 'success' ? <CheckCircle className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <AlertCircle className="w-3.5 h-3.5 md:w-4 md:h-4" />}
           <span className="font-medium">{notification.message}</span>
         </div>
       )}
 
       {/* Location Permission Modal */}
       {showLocationModal && (
-        <div className="fixed inset-0 z-[10001] bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in">
-            <div className="text-center mb-4">
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="w-8 h-8 text-amber-600" />
+        <div className="fixed inset-0 z-[10001] bg-black/50 flex items-center justify-center p-3 md:p-4">
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-md w-full p-4 md:p-6 animate-scale-in">
+            <div className="text-center mb-3 md:mb-4">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
+                <MapPin className="w-6 h-6 md:w-8 md:h-8 text-amber-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Location Required</h3>
-              <p className="text-gray-600 text-sm">
+              <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">Location Required</h3>
+              <p className="text-gray-600 text-xs md:text-sm">
                 We need your location to process your order and ensure accurate delivery to your table.
               </p>
             </div>
 
             {locationError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-2 md:p-3 mb-3 md:mb-4">
                 <div className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-red-600 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-red-800 text-sm font-medium mb-1">Access Denied</p>
-                    <p className="text-red-700 text-xs">{locationError}</p>
-                    <p className="text-red-600 text-xs mt-2">
+                    <p className="text-red-800 text-xs md:text-sm font-medium mb-1">Access Denied</p>
+                    <p className="text-red-700 text-[10px] md:text-xs">{locationError}</p>
+                    <p className="text-red-600 text-[10px] md:text-xs mt-2">
                       Please enable location permissions in your browser settings and try again.
                     </p>
                   </div>
@@ -308,20 +317,20 @@ const OrderManagementDashboard = () => {
               </div>
             )}
 
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               <button
                 onClick={handleRequestLocationAndOrder}
                 disabled={isGettingLocation}
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white px-4 py-3 rounded-xl font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white px-3 md:px-4 py-2 md:py-3 rounded-lg md:rounded-xl font-bold text-xs md:text-sm disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isGettingLocation ? (
                   <>
-                    <Loader className="w-5 h-5 animate-spin" />
+                    <Loader className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
                     Getting Location...
                   </>
                 ) : (
                   <>
-                    <MapPin className="w-5 h-5" />
+                    <MapPin className="w-4 h-4 md:w-5 md:h-5" />
                     {locationError ? 'Try Again' : 'Allow Location'}
                   </>
                 )}
@@ -333,13 +342,13 @@ const OrderManagementDashboard = () => {
                   setLocationError(null);
                 }}
                 disabled={isGettingLocation}
-                className="w-full border-2 border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-semibold hover:bg-gray-50 disabled:opacity-50"
+                className="w-full border-2 border-gray-300 text-gray-700 px-3 md:px-4 py-2 md:py-3 rounded-lg md:rounded-xl font-semibold text-xs md:text-sm hover:bg-gray-50 disabled:opacity-50"
               >
                 Cancel
               </button>
             </div>
 
-            <p className="text-xs text-gray-500 text-center mt-4">
+            <p className="text-[10px] md:text-xs text-gray-500 text-center mt-3 md:mt-4">
               Your location will only be used for this order and won't be stored.
             </p>
           </div>
@@ -349,40 +358,40 @@ const OrderManagementDashboard = () => {
       {/* Main Content - Full Screen */}
       <div className="w-full h-full bg-white flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-4 flex items-center justify-between flex-shrink-0">
+        <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-3 md:px-5 py-3 md:py-4 flex items-center justify-between flex-shrink-0">
           <div>
-            <h2 className="text-xl font-bold text-white">Table {selectedTable?.tableNumber}</h2>
-            <p className="text-white/90 text-sm">Floor {selectedTable?.floorNumber} • {selectedTable?.capacity} seats</p>
+            <h2 className="text-lg md:text-xl font-bold text-white">Table {selectedTable?.tableNumber}</h2>
+            <p className="text-white/90 text-xs md:text-sm">Floor {selectedTable?.floorNumber} • {selectedTable?.capacity} seats</p>
           </div>
         </div>
 
         {showMenuView ? (
           /* MENU VIEW */
           <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Category Bar */}
+            {/* Scrollable Category Bar */}
             <div className="border-b border-gray-200 flex-shrink-0 bg-white sticky top-0 z-10">
               <div className="overflow-x-auto scrollbar-thin">
-                <div className="flex gap-3 px-4 py-3 min-w-max">
+                <div className="flex gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 min-w-max">
                   {isLoadingCategories ? (
-                    <Loader className="w-5 h-5 text-amber-600 animate-spin" />
+                    <Loader className="w-4 h-4 md:w-5 md:h-5 text-amber-600 animate-spin" />
                   ) : (
                     categories.map((cat, idx) => (
                       <button
                         key={`${cat._id}-${idx}`}
                         onClick={() => setSelectedCategory(cat.id)}
-                        className="flex-shrink-0 flex flex-col items-center gap-1.5 transition-transform hover:scale-105"
+                        className="flex-shrink-0 flex flex-col items-center gap-1 md:gap-1.5 transition-transform hover:scale-105"
                       >
-                        <div className={`w-14 h-14 rounded-full overflow-hidden border-2 transition ${selectedCategory === cat.id ? 'border-amber-500 shadow-md' : 'border-gray-200'
+                        <div className={`w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden border-2 transition ${selectedCategory === cat.id ? 'border-amber-500 shadow-md' : 'border-gray-200'
                           }`}>
                           {cat.imgURL ? (
                             <img src={cat.imgURL} alt={cat.id} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-lg">
+                            <div className="w-full h-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-base md:text-xl">
                               {cat.id === 'all' ? '🍽️' : '✨'}
                             </div>
                           )}
                         </div>
-                        <p className={`text-xs font-semibold max-w-[60px] truncate ${selectedCategory === cat.id ? 'text-amber-600' : 'text-gray-700'
+                        <p className={`text-[10px] md:text-xs font-semibold max-w-[60px] text-center truncate ${selectedCategory === cat.id ? 'text-amber-600' : 'text-gray-700'
                           }`}>
                           {cat.description || cat.id}
                         </p>
@@ -394,88 +403,242 @@ const OrderManagementDashboard = () => {
             </div>
 
             {/* Menu Items Grid */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {isLoadingMenuItems ? (
-                <div className="flex items-center justify-center h-48">
-                  <Loader className="w-7 h-7 text-amber-600 animate-spin" />
-                </div>
-              ) : filteredMenuItems.length === 0 ? (
-                <div className="text-center py-10">
-                  <Utensils className="w-12 h-12 text-amber-400 mx-auto mb-3" />
-                  <p className="text-gray-500">No items available</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {filteredMenuItems.map((item) => (
-                    <div key={item._id} className="bg-white rounded-xl overflow-hidden shadow border border-gray-200 hover:shadow-lg transition">
-                      <div className="relative h-32 bg-gray-100">
-                        {item.imgURL && item.imgURL !== '/images/default-item.jpg' ? (
-                          <img src={item.imgURL} alt={item.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-100 to-orange-100">
-                            <Utensils className="w-8 h-8 text-amber-500" />
-                          </div>
-                        )}
-                        {item.mostSell && (
-                          <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold">
-                            🔥
-                          </div>
-                        )}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* View Controls */}
+              <div className="border-b border-gray-200 flex-shrink-0 bg-white sticky top-0 z-10 px-3 md:px-4 py-2 md:py-3 space-y-2 md:space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm md:text-base font-bold text-gray-900">Menu Items ({filteredMenuItems.length})</h3>
+                  
+                  <div className="flex items-center gap-2">
+                    {/* View Mode Toggle */}
+                    <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+                      <button
+                        onClick={() => setMenuViewMode('grid')}
+                        className={`p-1.5 md:p-2 rounded transition-all ${menuViewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                        title="Grid view"
+                      >
+                        <LayoutGrid className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
+                      </button>
+                      <button
+                        onClick={() => setMenuViewMode('table')}
+                        className={`p-1.5 md:p-2 rounded transition-all ${menuViewMode === 'table' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                        title="Table view"
+                      >
+                        <List className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-700" />
+                      </button>
+                    </div>
+
+                    {/* Grid Column Selector - Only show in grid mode */}
+                    {menuViewMode === 'grid' && (
+                      <div className="hidden md:flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+                        <button
+                          onClick={() => setMenuGridColumns(2)}
+                          className={`p-1.5 rounded transition-all ${menuGridColumns === 2 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                          title="2 columns"
+                        >
+                          <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="2" y="3" width="9" height="6" strokeWidth="2" />
+                            <rect x="13" y="3" width="9" height="6" strokeWidth="2" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => setMenuGridColumns(3)}
+                          className={`p-1.5 rounded transition-all ${menuGridColumns === 3 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                          title="3 columns"
+                        >
+                          <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="2" y="3" width="5.5" height="6" strokeWidth="2" />
+                            <rect x="9.25" y="3" width="5.5" height="6" strokeWidth="2" />
+                            <rect x="16.5" y="3" width="5.5" height="6" strokeWidth="2" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => setMenuGridColumns(4)}
+                          className={`p-1.5 rounded transition-all ${menuGridColumns === 4 ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                          title="4 columns"
+                        >
+                          <svg className="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="1.5" y="3" width="4" height="6" strokeWidth="2" />
+                            <rect x="7" y="3" width="4" height="6" strokeWidth="2" />
+                            <rect x="12.5" y="3" width="4" height="6" strokeWidth="2" />
+                            <rect x="18" y="3" width="4" height="6" strokeWidth="2" />
+                          </svg>
+                        </button>
                       </div>
-                      <div className="p-3">
-                        <h3 className="font-bold text-sm text-gray-900 mb-1 line-clamp-1">{item.name}</h3>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-lg font-bold text-amber-600">₹{item.price?.toFixed(0)}</span>
-                          {item.preparationTime && (
-                            <span className="text-xs bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded">
-                              {item.preparationTime}m
-                            </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Search Input */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search menu items..."
+                    value={menuSearchTerm}
+                    onChange={(e) => setMenuSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Menu Items Content */}
+              <div className="flex-1 overflow-y-auto p-3 md:p-4">
+                {isLoadingMenuItems ? (
+                  <div className="flex items-center justify-center h-48">
+                    <Loader className="w-6 h-6 md:w-7 md:h-7 text-amber-600 animate-spin" />
+                  </div>
+                ) : filteredMenuItems.length === 0 ? (
+                  <div className="text-center py-10">
+                    <Utensils className="w-10 h-10 md:w-12 md:h-12 text-amber-400 mx-auto mb-3" />
+                    <p className="text-gray-500 text-sm md:text-base">No items available</p>
+                  </div>
+                ) : menuViewMode === 'grid' ? (
+                  <div className={`grid gap-2 md:gap-3 ${menuGridColumns === 2 ? 'grid-cols-2 md:grid-cols-2' :
+                    menuGridColumns === 3 ? 'grid-cols-2 md:grid-cols-3' :
+                      'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+                    }`}>
+                    {filteredMenuItems.map((item) => (
+                      <div key={item._id} className="bg-white rounded-xl overflow-hidden shadow border border-gray-200 hover:shadow-lg transition">
+                        <div className="relative h-28 md:h-32 bg-gray-100">
+                          {item.imgURL && item.imgURL !== '/images/default-item.jpg' ? (
+                            <img src={item.imgURL} alt={item.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-100 to-orange-100">
+                              <Utensils className="w-6 h-6 md:w-8 md:h-8 text-amber-500" />
+                            </div>
+                          )}
+                          {item.mostSell && (
+                            <div className="absolute top-1.5 md:top-2 right-1.5 md:right-2 bg-red-500 text-white px-1.5 md:px-2 py-0.5 rounded-full text-[10px] md:text-xs font-bold">
+                              🔥
+                            </div>
                           )}
                         </div>
-                        {cart[item._id] ? (
-                          <div className="flex items-center gap-1.5 bg-amber-500 rounded-lg p-1.5">
-                            <button onClick={() => handleRemoveFromCart(item._id)} className="text-white hover:bg-amber-600 p-1 rounded">
-                              <Minus className="w-4 h-4" />
-                            </button>
-                            <span className="flex-1 text-center text-white font-bold text-sm">{cart[item._id]}</span>
-                            <button onClick={() => handleAddToCart(item._id)} className="text-white hover:bg-amber-600 p-1 rounded">
-                              <Plus className="w-4 h-4" />
-                            </button>
+                        <div className="p-2 md:p-3">
+                          <h3 className="font-bold text-xs md:text-sm text-gray-900 mb-1 line-clamp-1">{item.name}</h3>
+                          <div className="flex items-center justify-between mb-1.5 md:mb-2">
+                            <span className="text-base md:text-lg font-bold text-amber-600">₹{item.price?.toFixed(0)}</span>
+                            {item.preparationTime && (
+                              <span className="text-[10px] md:text-xs bg-amber-50 text-amber-700 px-1 md:px-1.5 py-0.5 rounded">
+                                {item.preparationTime}m
+                              </span>
+                            )}
                           </div>
-                        ) : (
-                          <button
-                            onClick={() => handleAddToCart(item._id)}
-                            className="w-full py-1.5 px-2 rounded-lg font-semibold text-sm flex items-center justify-center gap-1.5 bg-amber-500 text-white hover:bg-amber-600"
-                          >
-                            <Plus className="w-4 h-4" />
-                            Add
-                          </button>
-                        )}
+                          {cart[item._id] ? (
+                            <div className="flex items-center gap-1 md:gap-1.5 bg-amber-500 rounded-lg p-1 md:p-1.5">
+                              <button onClick={() => handleRemoveFromCart(item._id)} className="text-white hover:bg-amber-600 p-0.5 md:p-1 rounded">
+                                <Minus className="w-3 h-3 md:w-4 md:h-4" />
+                              </button>
+                              <span className="flex-1 text-center text-white font-bold text-xs md:text-sm">{cart[item._id]}</span>
+                              <button onClick={() => handleAddToCart(item._id)} className="text-white hover:bg-amber-600 p-0.5 md:p-1 rounded">
+                                <Plus className="w-3 h-3 md:w-4 md:h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleAddToCart(item._id)}
+                              className="w-full py-1 md:py-1.5 px-2 rounded-lg font-semibold text-xs md:text-sm flex items-center justify-center gap-1 md:gap-1.5 bg-amber-500 text-white hover:bg-amber-600"
+                            >
+                              <Plus className="w-3 h-3 md:w-4 md:h-4" />
+                              Add
+                            </button>
+                          )}
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                ) : (
+                  // Table View for Menu Items
+                  <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200">
+                          <tr>
+                            <th className="px-3 md:px-4 py-2.5 md:py-3 text-left text-xs md:text-sm font-bold text-gray-700">Item</th>
+                            <th className="px-3 md:px-4 py-2.5 md:py-3 text-center text-xs md:text-sm font-bold text-gray-700">Price</th>
+                            <th className="px-3 md:px-4 py-2.5 md:py-3 text-center text-xs md:text-sm font-bold text-gray-700 hidden sm:table-cell">Time</th>
+                            <th className="px-3 md:px-4 py-2.5 md:py-3 text-center text-xs md:text-sm font-bold text-gray-700">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {filteredMenuItems.map((item) => (
+                            <tr key={item._id} className="hover:bg-amber-50/50 transition-colors">
+                              <td className="px-3 md:px-4 py-2 md:py-3">
+                                <div className="flex items-center gap-2">
+                                  {item.imgURL && item.imgURL !== '/images/default-item.jpg' ? (
+                                    <img src={item.imgURL} alt={item.name} className="w-8 h-8 md:w-10 md:h-10 rounded object-cover" />
+                                  ) : (
+                                    <div className="w-8 h-8 md:w-10 md:h-10 rounded bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                                      <Utensils className="w-4 h-4 md:w-5 md:h-5 text-amber-600" />
+                                    </div>
+                                  )}
+                                  <div>
+                                    <p className="font-semibold text-gray-900 text-xs md:text-sm">{item.name}</p>
+                                    {item.mostSell && <span className="text-[10px] text-red-500 font-bold">🔥 Popular</span>}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-3 md:px-4 py-2 md:py-3 text-center">
+                                <span className="font-bold text-amber-600 text-sm md:text-base">₹{item.price?.toFixed(0)}</span>
+                              </td>
+                              <td className="px-3 md:px-4 py-2 md:py-3 text-center hidden sm:table-cell">
+                                {item.preparationTime && (
+                                  <span className="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded">
+                                    {item.preparationTime}m
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-3 md:px-4 py-2 md:py-3">
+                                <div className="flex items-center justify-center gap-1 md:gap-2">
+                                  {cart[item._id] ? (
+                                    <div className="flex items-center gap-0.5 md:gap-1 bg-amber-500 rounded-lg p-0.5 md:p-1">
+                                      <button onClick={() => handleRemoveFromCart(item._id)} className="text-white hover:bg-amber-600 p-0.5 rounded">
+                                        <Minus className="w-3 h-3 md:w-4 md:h-4" />
+                                      </button>
+                                      <span className="text-white font-bold text-xs md:text-sm px-1">{cart[item._id]}</span>
+                                      <button onClick={() => handleAddToCart(item._id)} className="text-white hover:bg-amber-600 p-0.5 rounded">
+                                        <Plus className="w-3 h-3 md:w-4 md:h-4" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleAddToCart(item._id)}
+                                      className="py-1 md:py-1.5 px-2 md:px-3 rounded-lg font-semibold text-xs md:text-sm bg-amber-500 text-white hover:bg-amber-600"
+                                    >
+                                      <Plus className="w-3 h-3 md:w-4 md:h-4 inline mr-1" />
+                                      Add
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Cart Footer */}
-            <div className="border-t-2 border-amber-500 bg-white p-4 flex-shrink-0 shadow-lg">
+            <div className="border-t-2 border-amber-500 bg-white p-3 md:p-4 flex-shrink-0 shadow-lg">
               {cartItemsCount > 0 ? (
-                <div className="mb-3">
+                <div className="mb-2 md:mb-3">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <p className="text-gray-600 text-xs">Items: {cartItemsCount}</p>
-                      <p className="text-2xl font-bold text-amber-600">₹{cartTotal.toFixed(2)}</p>
+                      <p className="text-gray-600 text-[10px] md:text-xs">Items: {cartItemsCount}</p>
+                      <p className="text-xl md:text-2xl font-bold text-amber-600">₹{cartTotal}</p>
                     </div>
-                    <button onClick={() => setCart({})} className="text-xs text-red-600 font-semibold px-3 py-1.5 bg-red-50 rounded-lg">
+                    <button onClick={() => setCart({})} className="text-xs text-red-600 font-semibold px-2 md:px-3 py-1 md:py-1.5 bg-red-50 rounded-lg">
                       Clear
                     </button>
                   </div>
-                  <div className="space-y-1 max-h-16 overflow-y-auto bg-amber-50 p-2 rounded-lg">
+                  <div className="space-y-1 max-h-16 overflow-y-auto bg-amber-50 p-1.5 md:p-2 rounded-lg">
                     {Object.entries(cart).map(([itemId, qty]) => {
                       const item = menuItems.find(m => m._id === itemId);
                       return (
-                        <div key={itemId} className="flex justify-between text-xs">
+                        <div key={itemId} className="flex justify-between text-[10px] md:text-xs">
                           <span className="text-gray-700">{item?.name} × {qty}</span>
                           <span className="font-bold text-gray-900">₹{((item?.price || 0) * qty).toFixed(0)}</span>
                         </div>
@@ -484,15 +647,15 @@ const OrderManagementDashboard = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-3 mb-3">
-                  <p className="text-gray-500 text-sm">Cart is empty</p>
+                <div className="text-center py-2 md:py-3 mb-2 md:mb-3">
+                  <p className="text-gray-500 text-xs md:text-sm">Cart is empty</p>
                 </div>
               )}
               <div className="flex gap-2">
                 {session && (
                   <button
                     onClick={() => setShowMenuView(false)}
-                    className="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-lg font-semibold text-sm text-gray-700 hover:bg-gray-50"
+                    className="flex-1 px-3 md:px-4 py-2 md:py-2.5 border-2 border-gray-300 rounded-lg font-semibold text-xs md:text-sm text-gray-700 hover:bg-gray-50"
                   >
                     Back
                   </button>
@@ -500,10 +663,10 @@ const OrderManagementDashboard = () => {
                 <button
                   onClick={handlePlaceOrderClick}
                   disabled={isLoading || cartItemsCount === 0}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 px-3 md:px-4 py-2 md:py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg font-bold text-xs md:text-sm disabled:opacity-50 flex items-center justify-center gap-1.5 md:gap-2"
                 >
-                  {isLoading ? <Loader className="w-5 h-5 animate-spin" /> : (
-                    <><Send className="w-4 h-4" />Place Order</>
+                  {isLoading ? <Loader className="w-4 h-4 md:w-5 md:h-5 animate-spin" /> : (
+                    <><Send className="w-3.5 h-3.5 md:w-4 md:h-4" />Place Order</>
                   )}
                 </button>
               </div>
@@ -511,56 +674,56 @@ const OrderManagementDashboard = () => {
           </div>
         ) : (
           /* SESSION VIEW */
-          <div className="flex-1 overflow-y-auto p-5">
+          <div className="flex-1 overflow-y-auto p-3 md:p-5">
             {isLoading ? (
               <div className="flex justify-center py-8">
-                <Loader className="w-7 h-7 text-amber-600 animate-spin" />
+                <Loader className="w-6 h-6 md:w-7 md:h-7 text-amber-600 animate-spin" />
               </div>
             ) : session ? (
               <>
                 {/* Session Info */}
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 mb-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3 md:p-4 mb-3 md:mb-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3 text-xs md:text-sm">
                     <div>
-                      <p className="text-gray-600 text-xs mb-0.5">Session ID</p>
-                      <p className="font-bold text-gray-900 text-xs">{session.sessionId}</p>
+                      <p className="text-gray-600 text-[10px] md:text-xs mb-0.5">Session ID</p>
+                      <p className="font-bold text-gray-900 text-xs md:text-sm truncate">{session.sessionId}</p>
                     </div>
                     <div>
-                      <p className="text-gray-600 text-xs mb-0.5">Orders</p>
+                      <p className="text-gray-600 text-[10px] md:text-xs mb-0.5">Orders</p>
                       <p className="font-bold text-gray-900">{activeOrders.length}</p>
                     </div>
-                    <div>
-                      <p className="text-gray-600 text-xs mb-0.5">Total</p>
-                      <p className="font-bold text-amber-600 text-base">₹{sessionTotal.toFixed(2)}</p>
+                    <div className="col-span-2 md:col-span-1">
+                      <p className="text-gray-600 text-[10px] md:text-xs mb-0.5">Total</p>
+                      <p className="font-bold text-amber-600 text-base md:text-lg">₹{sessionTotal.toFixed(2)}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Orders Section */}
-                <div className="mb-4">
-                  <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <ShoppingBag className="w-5 h-5 text-amber-600" />
+                <div className="mb-3 md:mb-4">
+                  <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 md:mb-3 flex items-center gap-2">
+                    <ShoppingBag className="w-4 h-4 md:w-5 md:h-5 text-amber-600" />
                     Orders ({activeOrders.length})
                   </h3>
                   {activeOrders.length === 0 ? (
                     <div className="text-center py-6 bg-gray-50 rounded-xl">
-                      <Package className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500 text-sm">No orders yet</p>
+                      <Package className="w-8 h-8 md:w-10 md:h-10 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500 text-xs md:text-sm">No orders yet</p>
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2 md:space-y-3">
                       {activeOrders.map((order) => (
-                        <div key={order._id} className="bg-white border border-gray-200 rounded-xl p-4">
-                          <div className="flex items-start justify-between mb-3">
+                        <div key={order._id} className="bg-white border border-gray-200 rounded-xl p-3 md:p-4">
+                          <div className="flex items-start justify-between mb-2 md:mb-3">
                             <div>
-                              <h4 className="font-bold text-gray-900">{order.orderId}</h4>
-                              <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                                <Clock className="w-3 h-3" />
+                              <h4 className="font-bold text-gray-900 text-sm md:text-base">{order.orderId}</h4>
+                              <p className="text-[10px] md:text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                                <Clock className="w-2.5 h-2.5 md:w-3 md:h-3" />
                                 {new Date(order.orderedAt).toLocaleTimeString()}
                               </p>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                              <p className={`px-3 py-1.5 rounded-lg text-xs font-bold border cursor-pointer ${order.orderStatus === 'pending' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                            <div className="flex items-center gap-1 md:gap-1.5">
+                              <p className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border ${order.orderStatus === 'pending' ? 'bg-orange-50 text-orange-700 border-orange-200' :
                                   order.orderStatus === 'preparing' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                                     'bg-green-50 text-green-700 border-green-200'
                                 }`}>{order.orderStatus}</p>
@@ -569,46 +732,46 @@ const OrderManagementDashboard = () => {
 
                           {/* Order Items Table */}
                           <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
+                            <table className="w-full text-xs md:text-sm">
                               <thead className="bg-gray-50">
                                 <tr>
-                                  <th className="text-left py-2 px-2 text-xs font-semibold text-gray-700">Item</th>
-                                  <th className="text-center py-2 px-2 text-xs font-semibold text-gray-700">Qty</th>
-                                  <th className="text-right py-2 px-2 text-xs font-semibold text-gray-700">Price</th>
-                                  <th className="text-right py-2 px-2 text-xs font-semibold text-gray-700">Total</th>
+                                  <th className="text-left py-1.5 md:py-2 px-1.5 md:px-2 text-[10px] md:text-xs font-semibold text-gray-700">Item</th>
+                                  <th className="text-center py-1.5 md:py-2 px-1.5 md:px-2 text-[10px] md:text-xs font-semibold text-gray-700">Qty</th>
+                                  <th className="text-right py-1.5 md:py-2 px-1.5 md:px-2 text-[10px] md:text-xs font-semibold text-gray-700">Price</th>
+                                  <th className="text-right py-1.5 md:py-2 px-1.5 md:px-2 text-[10px] md:text-xs font-semibold text-gray-700">Total</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-gray-100">
                                 {order.items.map((item, idx) => (
                                   <tr key={idx}>
-                                    <td className="py-2 px-2">
-                                      <div className="flex items-center gap-2">
+                                    <td className="py-1.5 md:py-2 px-1.5 md:px-2">
+                                      <div className="flex items-center gap-1.5 md:gap-2">
                                         {item.menuItem?.imgURL && item.menuItem.imgURL !== '/images/default-item.jpg' ? (
-                                          <img src={item.menuItem.imgURL} alt={item.name} className="w-8 h-8 rounded object-cover" />
+                                          <img src={item.menuItem.imgURL} alt={item.name} className="w-6 h-6 md:w-8 md:h-8 rounded object-cover" />
                                         ) : (
-                                          <div className="w-8 h-8 rounded bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
-                                            <Utensils className="w-4 h-4 text-amber-600" />
+                                          <div className="w-6 h-6 md:w-8 md:h-8 rounded bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                                            <Utensils className="w-3 h-3 md:w-4 md:h-4 text-amber-600" />
                                           </div>
                                         )}
-                                        <span className="font-medium text-gray-900">{item.name}</span>
+                                        <span className="font-medium text-gray-900 text-[10px] md:text-xs">{item.name}</span>
                                       </div>
                                     </td>
-                                    <td className="py-2 px-2 text-center font-semibold text-gray-700">{item.quantity}</td>
-                                    <td className="py-2 px-2 text-right text-gray-600">₹{item.price}</td>
-                                    <td className="py-2 px-2 text-right font-bold text-amber-600">₹{item.subtotal.toFixed(2)}</td>
+                                    <td className="py-1.5 md:py-2 px-1.5 md:px-2 text-center font-semibold text-gray-700">{item.quantity}</td>
+                                    <td className="py-1.5 md:py-2 px-1.5 md:px-2 text-right text-gray-600">₹{item.price}</td>
+                                    <td className="py-1.5 md:py-2 px-1.5 md:px-2 text-right font-bold text-amber-600">₹{item.subtotal.toFixed(2)}</td>
                                   </tr>
                                 ))}
                               </tbody>
                             </table>
                           </div>
 
-                          <div className="pt-3 mt-3 border-t border-gray-200 flex items-center justify-between">
-                            <span className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-full text-xs font-medium text-blue-700">
-                              <Clock className="w-3 h-3" />{order.estimatedTime} mins
+                          <div className="pt-2 md:pt-3 mt-2 md:mt-3 border-t border-gray-200 flex items-center justify-between">
+                            <span className="flex items-center gap-1 bg-blue-50 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium text-blue-700">
+                              <Clock className="w-2.5 h-2.5 md:w-3 md:h-3" />{order.estimatedTime} mins
                             </span>
                             <div className="text-right">
-                              <p className="text-xs text-gray-500 mb-0.5">Order Total</p>
-                              <span className="text-xl font-bold text-amber-600">₹{order.orderAmount.toFixed(2)}</span>
+                              <p className="text-[10px] md:text-xs text-gray-500 mb-0.5">Order Total</p>
+                              <span className="text-lg md:text-xl font-bold text-amber-600">₹{order.orderAmount.toFixed(2)}</span>
                             </div>
                           </div>
                         </div>
@@ -625,16 +788,16 @@ const OrderManagementDashboard = () => {
                       if (!menuItems.length) loadMenuItems();
                       if (!categories.length) loadCategories();
                     }}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 text-sm"
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 md:px-4 py-2 md:py-3 rounded-xl font-bold flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm"
                   >
-                    <Plus className="w-5 h-5" />New Order
+                    <Plus className="w-4 h-4 md:w-5 md:h-5" />New Order
                   </button>
                 </div>
               </>
             ) : (
               <div className="text-center py-10">
-                <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
-                <p className="text-gray-600">No active session</p>
+                <AlertCircle className="w-8 h-8 md:w-10 md:h-10 text-red-500 mx-auto mb-3" />
+                <p className="text-gray-600 text-sm md:text-base">No active session</p>
               </div>
             )}
           </div>
@@ -655,4 +818,4 @@ const OrderManagementDashboard = () => {
   );
 };
 
-export default OrderManagementDashboard;
+export default CustomerSelfOrderManagementPage;

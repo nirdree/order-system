@@ -77,9 +77,13 @@ export async function POST(req) {
     const MAX_DISTANCE = settings.locationAccuracy || 50; // 50 meters
     if (distance > MAX_DISTANCE) {
       return errorResponse(
-        `You must be within ${MAX_DISTANCE} meters of the restaurant to place an order. Current distance: ${Math.round(distance)} meters.`,
+        'place an order only when you are within the restaurant.',
         403
       );
+      // return errorResponse(
+      //   `You must be within ${MAX_DISTANCE} meters of the restaurant to place an order. Current distance: ${Math.round(distance)} meters.`,
+      //   403
+      // );
     }
 
     if (!tableId) {
