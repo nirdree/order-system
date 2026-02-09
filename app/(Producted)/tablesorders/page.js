@@ -1059,7 +1059,7 @@ export const TableDetailModal = ({ table, isOpen, onClose, onUpdate }) => {
             ) : (
               <div className="text-center py-10">
                 <AlertCircle className="w-8 h-8 md:w-10 md:h-10 text-red-500 mx-auto mb-3" />
-                <p className="text-gray-600 text-sm md:text-base">No active session</p>
+                <p className="text-gray-600 text-sm md:text-base">Refresh the Page</p>
               </div>
             )}
           </div>

@@ -50,8 +50,6 @@ export async function GET(request) {
     start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
 
-    console.log('[Dashboard Stats] Date range:', { start, end });
-
     // ============= TODAY'S METRICS (For quick stats) =============
     const todayOrders = await Order.find({
       createdAt: { $gte: today, $lte: endOfToday }
@@ -71,11 +69,6 @@ export async function GET(request) {
       }
     });
 
-    console.log('[Dashboard Stats] Today metrics:', {
-      totalOrders: todayOrders.length,
-      revenue: todayRevenue,
-      completed: todayCompleted
-    });
 
     // ============= ORDERS METRICS (30 day period) =============
     // Use aggregation pipeline for better performance instead of fetching all documents
