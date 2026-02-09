@@ -13,6 +13,7 @@ import {
   LogOut,
   Settings,
   ChartCandlestick,
+  TrendingUp,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -68,7 +69,8 @@ export default function OwnerLayout({ children }) {
           { name: 'Menu Management', href: '/menu', icon: MenuSquare },
           { name: 'Tables Management', href: '/tables', icon: UtensilsCrossed },
           { name: 'User Management', href: '/users', icon: Users },
-          {name:"Explanations", href:"/explanations", icon:ChartCandlestick }
+          { name: 'Sales & Explanations', href: '/sales-explanations', icon: TrendingUp },
+          { name: 'Explanations', href: '/explanations', icon: ChartCandlestick }
         ]
       : []),
     ...(user.role == 'admin'
