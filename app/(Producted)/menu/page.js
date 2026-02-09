@@ -81,7 +81,7 @@ const MenuDashboard = () => {
   // Category Form Data
   const [categoryFormData, setCategoryFormData] = useState({
     id: '',
-    icon: 'Coffee',
+    icon: 'Sparkles',
     description: '',
     imgURL: '',
   });
@@ -418,7 +418,7 @@ const MenuDashboard = () => {
     setCurrentItem(null);
     setCategoryFormData({
       id: '',
-      icon: 'Coffee',
+      icon: 'Sparkles',
       description: '',
       imgURL: '',
     });
@@ -1657,7 +1657,7 @@ const MenuDashboard = () => {
                   )}
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Icon</label>
                   <select
                     name="icon"
@@ -1671,7 +1671,7 @@ const MenuDashboard = () => {
                       </option>
                     ))}
                   </select>
-                </div>
+                </div> */}
 
                 <div>
                   <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1">Description</label>

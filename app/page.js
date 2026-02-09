@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { 
-  Coffee, Sparkles, MapPin, Phone, Clock, ExternalLink, 
+import {
+  Coffee, Sparkles, MapPin, Phone, Clock, ExternalLink,
   Gift, PartyPopper, Cake, Users, Star, ChevronRight,
   Instagram, Facebook, Menu as MenuIcon, X, ArrowRight,
   UtensilsCrossed, Heart, Award, Loader
@@ -131,9 +131,8 @@ const PocketBiteCafeLanding = () => {
 
         {/* Header */}
         <header
-          className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-            scrolled ? 'bg-white/95 backdrop-blur-lg shadow-xl py-4' : 'bg-transparent py-6'
-          }`}
+          className={`fixed top-0 left-0 right-0 z-60 transition-all duration-500 ${scrolled ? 'bg-white/95 backdrop-blur-lg shadow-xl py-4' : 'bg-transparent py-6'
+            }`}
         >
           <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
             <div className="flex items-center gap-3">
@@ -147,7 +146,7 @@ const PocketBiteCafeLanding = () => {
                 <p className="text-sm text-amber-600 font-medium">Celebrate Every Moment!</p>
               </div>
             </div>
-            
+
             {/* Desktop Menu */}
             <nav className="hidden md:flex gap-6 items-center">
               <a href="#home" className="text-gray-700 hover:text-amber-600 font-semibold transition-colors">
@@ -168,7 +167,7 @@ const PocketBiteCafeLanding = () => {
             </nav>
 
             {/* Mobile Menu Button */}
-            <button 
+            <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 text-gray-700 hover:text-amber-600"
             >
@@ -208,17 +207,17 @@ const PocketBiteCafeLanding = () => {
                 <Coffee className="w-16 h-16 text-white" />
               </div>
             </div>
-            
+
             <h2 className="text-6xl md:text-8xl font-black mb-6 leading-tight">
               <span className="bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 bg-clip-text text-transparent drop-shadow-lg">
                 Celebrate Every Moment!
               </span>
             </h2>
-            
+
             <p className="text-2xl md:text-3xl text-gray-700 mb-8 font-semibold max-w-3xl mx-auto">
-              Your favorite spot in <span className="text-amber-600">Akurdi, Pune</span> for 
-              <span className="text-orange-600"> Premium Coffee</span>, 
-              <span className="text-rose-600"> Sweet Treats</span>, and 
+              Your favorite spot in <span className="text-amber-600">Akurdi, Pune</span> for
+              <span className="text-orange-600"> Premium Coffee</span>,
+              <span className="text-rose-600"> Sweet Treats</span>, and
               <span className="text-pink-600"> Delicious Beverages</span>
             </p>
 
@@ -267,7 +266,7 @@ const PocketBiteCafeLanding = () => {
             <div className="absolute bottom-10 left-1/4 text-6xl">🎈</div>
             <div className="absolute bottom-20 right-1/3 text-6xl">🎁</div>
           </div>
-          
+
           <div className="max-w-6xl mx-auto relative z-10">
             <div className="text-center mb-16">
               <div className="inline-block bg-gradient-to-r from-pink-500 to-rose-600 p-4 rounded-full mb-6">
@@ -378,78 +377,80 @@ const PocketBiteCafeLanding = () => {
           </div>
         </section>
 
-        {/* Category Filter */}
-        <section id="menu" className="py-12 px-6 bg-white/50 backdrop-blur-sm sticky top-20 z-40 shadow-lg">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-8">
-              <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-2">
-                Our <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Menu</span>
-              </h2>
-              <p className="text-gray-600">Explore our delicious offerings</p>
-            </div>
-            <div className="overflow-x-auto scrollbar-custom pb-4">
-              <div className="flex gap-3 min-w-max px-2">
-                {isLoadingCategories ? (
-                  <div className="flex justify-center w-full">
-                    <Loader className="w-6 h-6 text-amber-600 animate-spin" />
-                  </div>
-                ) : (
-                  categories.map((cat) => (
-                    <button
-                      key={cat._id}
-                      onClick={() => setActiveCategory(cat.id)}
-                      className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
-                        activeCategory === cat.id
-                          ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg scale-105'
-                          : 'bg-white text-gray-700 hover:bg-amber-50 hover:text-amber-700 shadow'
-                      }`}
-                    >
-                      <UtensilsCrossed className="w-5 h-5" />
-                      {cat.description}
-                    </button>
-                  ))
-                )}
+        {/* Category Filter & Menu Grid Container */}
+        <section id="menu" className="bg-white/50 backdrop-blur-sm">
+          {/* Sticky Category Filter */}
+          <div className="py-12 px-6 sticky top-20 z-40 shadow-lg bg-white/50 backdrop-blur-sm">
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center mb-8">
+                <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-2">
+                  Our <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Menu</span>
+                </h2>
+                <p className="text-gray-600">Explore our delicious offerings</p>
+              </div>
+              <div className="overflow-x-auto scrollbar-custom pb-4">
+                <div className="flex gap-3 min-w-max px-2">
+                  {isLoadingCategories ? (
+                    <div className="flex justify-center w-full">
+                      <Loader className="w-6 h-6 text-amber-600 animate-spin" />
+                    </div>
+                  ) : (
+                    categories.map((cat) => (
+                      <button
+                        key={cat._id}
+                        onClick={() => setActiveCategory(cat.id)}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold whitespace-nowrap transition-all duration-300 flex-shrink-0 ${activeCategory === cat.id
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg scale-105'
+                            : 'bg-white text-gray-700 hover:bg-amber-50 hover:text-amber-700 shadow'
+                          }`}
+                      >
+                        <UtensilsCrossed className="w-5 h-5" />
+                        {cat.description}
+                      </button>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </section>
 
-        {/* Menu Grid */}
-        <section className="py-20 px-6">
-          <div className="max-w-7xl mx-auto">
-            {isLoadingMenu ? (
-              <div className="flex justify-center py-20">
-                <Loader className="w-10 h-10 text-amber-600 animate-spin" />
-              </div>
-            ) : activeCategory === 'all' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {categories
-                  .filter(c => c.id !== 'all')
-                  .map((category) => {
-                    const categoryItems = menuItems.filter(item => item.category === category.id && item.available);
-                    if (categoryItems.length === 0) return null;
-                    return (
-                      <CategoryCard key={category._id} category={category.id} items={categoryItems} />
-                    );
-                  })}
-              </div>
-            ) : (
-              <div className="max-w-4xl mx-auto">
-                {filteredMenuItems.length > 0 ? (
-                  <CategoryCard category={activeCategory} items={filteredMenuItems} />
-                ) : (
-                  <div className="text-center py-20 bg-gray-50 rounded-3xl">
-                    <UtensilsCrossed className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500 text-xl">No items available in this category</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          {/* Menu Grid */}
+          <section className="py-20 px-6">
+            <div className="max-w-7xl mx-auto">
+              {isLoadingMenu ? (
+                <div className="flex justify-center py-20">
+                  <Loader className="w-10 h-10 text-amber-600 animate-spin" />
+                </div>
+              ) : activeCategory === 'all' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {categories
+                    .filter(c => c.id !== 'all')
+                    .map((category) => {
+                      const categoryItems = menuItems.filter(item => item.category === category.id && item.available);
+                      if (categoryItems.length === 0) return null;
+                      return (
+                        <CategoryCard key={category._id} category={category.id} items={categoryItems} />
+                      );
+                    })}
+                </div>
+              ) : (
+                <div className="max-w-4xl mx-auto">
+                  {filteredMenuItems.length > 0 ? (
+                    <CategoryCard category={activeCategory} items={filteredMenuItems} />
+                  ) : (
+                    <div className="text-center py-20 bg-gray-50 rounded-3xl">
+                      <UtensilsCrossed className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500 text-xl">No items available in this category</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
         </section>
 
         {/* Order Section */}
-        <section id="order" className="py-20 px-6 bg-gradient-to-br from-amber-900 to-orange-900 relative overflow-hidden">
+        <section id="order" className="py-20 px-6 z-50 bg-gradient-to-br from-amber-900 to-orange-900 relative overflow-hidden">
           <div className="absolute inset-0 bg-black/20"></div>
           <div className="max-w-6xl mx-auto relative z-10">
             <div className="text-center mb-16">
@@ -468,7 +469,7 @@ const PocketBiteCafeLanding = () => {
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">Visit Our Cafe</h3>
                 <p className="text-gray-600 mb-6">Experience the cozy ambiance and fresh flavors in person</p>
                 <div className="bg-amber-50 rounded-2xl p-4 text-left">
-                  <p className="text-sm text-gray-700 mb-2"><strong>Location:</strong> Akurdi, Pune</p>
+                  <p className="text-sm text-gray-700 mb-2"><strong>Location:</strong> shop no. 3, Sector no. 26, opp. Akurdi Railway Station Road, Pradhikaran, Akurdi, Pimpri-Chinchwad, Maharashtra 411044</p>
                   <p className="text-sm text-gray-700"><strong>Hours:</strong> 9:00 AM - 11:00 PM</p>
                 </div>
               </div>
@@ -527,7 +528,7 @@ const PocketBiteCafeLanding = () => {
             </div>
 
             <div className="grid md:grid-cols-2 gap-8 mb-8">
-              <div className="bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <a href="tel:+918412827361" className="bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer hover:scale-105">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-4 rounded-2xl">
                     <Phone className="w-6 h-6 text-white" />
@@ -537,12 +538,28 @@ const PocketBiteCafeLanding = () => {
                     <p className="text-gray-600">For reservations & inquiries</p>
                   </div>
                 </div>
-                <p className="text-2xl font-bold text-amber-700">+91 XXXXX XXXXX</p>
-              </div>
+                <p className="text-2xl font-bold text-amber-700 hover:text-orange-600">+91 8412827361</p>
+              </a>
 
-              <div className="bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <a href="https://maps.app.goo.gl/j3vdmv7tAus5Jsgg8" target="_blank" rel="noopener noreferrer" className="bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer hover:scale-105">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="bg-gradient-to-br from-orange-500 to-rose-600 p-4 rounded-2xl">
+                    <MapPin className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Visit Us</h3>
+                    <p className="text-gray-600">Get directions & navigate</p>
+                  </div>
+                </div>
+                <p className="text-lg font-semibold text-gray-800 hover:text-orange-600">Akurdi, Pune</p>
+                <p className="text-gray-600">Open in Google Maps</p>
+              </a>
+            </div>
+
+            <div className="grid md:grid-cols-1 gap-8 mb-8">
+              <div className="bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-4 rounded-2xl">
                     <Clock className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -551,7 +568,7 @@ const PocketBiteCafeLanding = () => {
                   </div>
                 </div>
                 <p className="text-lg font-semibold text-gray-800">Open Daily</p>
-                <p className="text-gray-600">9:00 AM - 11:00 PM</p>
+                <p className="text-gray-600">10:00 AM - 10:00 PM</p>
               </div>
             </div>
 
@@ -560,17 +577,13 @@ const PocketBiteCafeLanding = () => {
                 Follow Us on Social Media
               </p>
               <div className="flex justify-center gap-6 mb-6">
-                <a href="https://instagram.com/pocketbitecafe" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-br from-pink-500 to-rose-600 p-4 rounded-full hover:scale-110 transition-transform">
+                <a href="https://www.instagram.com/pocket_bite_cafe?igsh=Zjc5N2ZqbDV3N3B5" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-br from-pink-500 to-rose-600 p-4 rounded-full hover:scale-110 transition-transform">
                   <Instagram className="w-6 h-6 text-white" />
                 </a>
-                <a href="https://facebook.com/pocketbitecafe" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-br from-blue-500 to-blue-600 p-4 rounded-full hover:scale-110 transition-transform">
-                  <Facebook className="w-6 h-6 text-white" />
-                </a>
+
               </div>
               <div className="flex flex-wrap justify-center gap-4">
-                <span className="text-amber-600 font-semibold">@pocketbitecafe</span>
-                <span className="text-gray-400">|</span>
-                <span className="text-rose-600 font-semibold">#pocketbitecafe</span>
+                <span className="text-amber-600 font-semibold">@pocket_bite_cafe</span>
               </div>
             </div>
           </div>
@@ -582,13 +595,16 @@ const PocketBiteCafeLanding = () => {
             <div className="text-center mb-8">
               <div className="flex justify-center items-center gap-3 mb-6">
                 <div className="bg-white p-3 rounded-2xl">
-                  <Coffee className="w-8 h-8 text-amber-700" />
+                  <button onClick={() => { window.location.href = '/login' }}>
+                    <Coffee className="w-8 h-8 text-amber-700" />
+                  </button>
+
                 </div>
                 <h3 className="text-3xl font-black text-white">POCKET BITE CAFE</h3>
               </div>
               <p className="text-amber-100 mb-4 text-lg">Celebrate Every Moment! ☕✨</p>
             </div>
-            
+
             <div className="grid md:grid-cols-3 gap-8 mb-8 text-center md:text-left">
               <div>
                 <h4 className="text-white font-bold mb-3">Quick Links</h4>
@@ -599,20 +615,21 @@ const PocketBiteCafeLanding = () => {
                   <a href="#order" className="block text-amber-200 hover:text-white transition-colors">Order Now</a>
                 </div>
               </div>
-              
+
               <div>
                 <h4 className="text-white font-bold mb-3">Location</h4>
-                <p className="text-amber-200">Akurdi, Pune</p>
-                <p className="text-amber-200">Maharashtra, India</p>
+                <p className="text-amber-200">Shop no. 3, Sector no. 26,  </p>
+                <p className="text-amber-200">opp. Akurdi Railway Station Road, Pradhikaran,</p>
+                <p className="text-amber-200">Akurdi, Pimpri-Chinchwad, Maharashtra 411044</p>
               </div>
-              
+
               <div>
                 <h4 className="text-white font-bold mb-3">Hours</h4>
                 <p className="text-amber-200">Monday - Sunday</p>
                 <p className="text-amber-200">9:00 AM - 11:00 PM</p>
               </div>
             </div>
-            
+
             <div className="border-t border-amber-700 pt-6 text-center">
               <p className="text-amber-200 text-sm">
                 © 2024 Pocket Bite Cafe. All rights reserved. | Made with <Heart className="w-4 h-4 inline text-red-400" /> in Pune
