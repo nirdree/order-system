@@ -204,7 +204,7 @@ const ViewControls = ({
 
 // Filter Input Component
 const FilterInput = ({ 
-  type = 'select', // 'select' or 'text'
+  type = 'select', // 'select', 'text', or 'date'
   icon: Icon = Filter,
   placeholder = 'Filter...',
   value,
@@ -214,7 +214,7 @@ const FilterInput = ({
   if (type === 'text') {
     return (
       <div className="relative">
-        <Icon className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
+        <Icon className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4 pointer-events-none" />
         <input
           type="text"
           placeholder={placeholder}
@@ -226,9 +226,24 @@ const FilterInput = ({
     );
   }
 
+  if (type === 'date') {
+    return (
+      <div className="relative">
+        <Icon className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4 pointer-events-none z-0" />
+        <input
+          type="date"
+          placeholder={placeholder}
+          value={value ?? ''}
+          onChange={(e) => onChange?.(e.target.value)}
+          className="w-full pl-8 md:pl-9 pr-2.5 md:pr-3 py-2 md:py-2.5 text-xs md:text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 relative z-10"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
-      <Icon className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4" />
+      <Icon className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 md:w-4 md:h-4 pointer-events-none" />
       <select
         value={value ?? ''}
         onChange={(e) => onChange?.(e.target.value)}
