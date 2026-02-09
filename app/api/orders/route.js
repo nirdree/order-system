@@ -5,6 +5,7 @@ import Table from '@/models/Table';
 import MenuItem from '@/models/MenuItem';
 import { authenticate } from '@/middleware/auth';
 import { successResponse, errorResponse } from '@/lib/apiResponse';
+import { emitOrderUpdate } from '@/lib/socket-server';
 
 export const runtime = 'nodejs';
 
@@ -212,6 +213,13 @@ export async function POST(req) {
       .populate('table', 'tableNumber floorNumber')
       .populate('items.menuItem', 'name price imgURL')
       .populate('orderedBy', 'name email');
+
+    // Emit WebSocket event for new order
+    try {
+      emitOrderUpdate(populatedOrder, 'order-created');
+    } catch (e) {
+      console.log('Socket emission failed (not critical):', e.message);
+    }
 
     return successResponse(
       populatedOrder,

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useUser } from '@/context/UserContext';
+import { useSocket } from '@/context/SocketContext';
 import { useRouter } from 'next/navigation';
 import {
   LogOut,
@@ -205,6 +206,7 @@ const OrderDetailModal = ({ order, isOpen, onClose, onStatusChange, onCancel }) 
 // ============= MAIN ORDERS PAGE COMPONENT =============
 export default function OrdersPage() {
   const { user, loading, logout } = useUser();
+  const { socket, isConnected } = useSocket();
   const router = useRouter();
 
   const [orders, setOrders] = useState([]);
@@ -285,6 +287,50 @@ export default function OrdersPage() {
     loadOrders();
     console.log('loading stutes-', loading, 'user stutes-', user)
   }, []);
+
+  // WebSocket Real-time Updates
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    // Listen for new orders
+    const handleNewOrder = (data) => {
+      console.log('📦 New order received:', data.order);
+      setOrders(prev => [data.order, ...prev]);
+      showNotification('success', `New order: ${data.order.orderId}`);
+    };
+
+    // Listen for order updates
+    const handleOrderUpdate = (data) => {
+      console.log('🔄 Order updated:', data.order);
+      setOrders(prev =>
+        prev.map(order =>
+          order._id === data.order._id ? data.order : order
+        )
+      );
+      showNotification('info', `Order ${data.order.orderId} status: ${data.order.orderStatus}`);
+    };
+
+    // Listen for order cancellations
+    const handleOrderCancelled = (data) => {
+      console.log('❌ Order cancelled:', data.order);
+      setOrders(prev =>
+        prev.map(order =>
+          order._id === data.order._id ? { ...order, orderStatus: 'cancelled' } : order
+        )
+      );
+      showNotification('error', `Order ${data.order.orderId} cancelled`);
+    };
+
+    socket.on('order-created', handleNewOrder);
+    socket.on('order-updated', handleOrderUpdate);
+    socket.on('order-cancelled', handleOrderCancelled);
+
+    return () => {
+      socket.off('order-created', handleNewOrder);
+      socket.off('order-updated', handleOrderUpdate);
+      socket.off('order-cancelled', handleOrderCancelled);
+    };
+  }, [socket, isConnected]);
 
   useEffect(() => {
     if (!loading && !user) {

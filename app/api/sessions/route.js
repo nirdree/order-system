@@ -4,6 +4,7 @@ import Table from '@/models/Table';
 import Order from '@/models/Order';
 import { authenticate } from '@/middleware/auth';
 import { successResponse, errorResponse } from '@/lib/apiResponse';
+import { emitSessionUpdate, emitTableUpdate } from '@/lib/socket-server';
 
 export const runtime = 'nodejs';
 
@@ -75,7 +76,7 @@ export async function POST(req) {
     }
 
     // Only staff, manager, and owner can create sessions
-    if (!['staff', 'manager', 'owner',,'admin'].includes(currentUser.role)) {
+    if (!['staff', 'manager', 'owner', 'admin'].includes(currentUser.role)) {
       return errorResponse('You do not have access to create sessions', 403);
     }
 
@@ -133,6 +134,14 @@ export async function POST(req) {
     const populatedSession = await Session.findById(session._id)
       .populate('table', 'tableNumber floorNumber')
       .populate('createdBy', 'name email');
+
+    // Emit WebSocket events
+    try {
+      emitSessionUpdate(populatedSession, 'session-created');
+      emitTableUpdate(table, 'table-updated');
+    } catch (e) {
+      console.log('Socket emission failed (not critical):', e.message);
+    }
 
     return successResponse(
       populatedSession,

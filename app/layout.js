@@ -1,6 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from '@/context/UserContext';
+import { SocketProvider } from '@/context/SocketContext';
+import ToastContainer from '@/components/ToastContainer';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +41,12 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="bg-gray-50 min-h-screen">
-        <UserProvider>{children}</UserProvider>
+        <UserProvider>
+          <SocketProvider>
+            {children}
+            <ToastContainer />
+          </SocketProvider>
+        </UserProvider>
       </body>
     </html>
   );
